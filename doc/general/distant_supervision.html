@@ -46,23 +46,28 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Changelog for version 0.02-alpha (03/12/2014)</h1>
+              <h1>Distant supervision</h1>
 
-<ul>
-<li><strong>Non-backward-compatible syntax change</strong>: Extractors only use the column name
-instead of <code>\[relation_name\].\[column_name\]</code> for keys to the JSON object.
-Documentation has been updated accordingly.</li>
-<li><strong>Non-backward-compatible syntax change</strong>: You must explicitly alias id and
-variable columns in the inference rules. See the updated <a href="../basics/inference_rules.html">inference rule
-documentation</a> for more information.</li>
-<li>Faster factor graph grounding code using pure SQL</li>
-<li>Support for high-speed C++ sampler</li>
-<li>Added documentation for high-speed sampler integration</li>
-<li>Faster serialization of factor graph</li>
-<li>Refactored the database-connection code to be JDBC-compatible. This makes it
-easier to add support for different databases.</li>
-<li>Automatically assign sequential variable IDs to extractions.</li>
-</ul>
+<p>Most machine learning techniques require a set of <strong>training data</strong>. A traditional
+approach for collecting training data is to have humans label a set of
+documents. For example, for the marriage relation, human annotators may label
+the pair &quot;Bill Clinton&quot; and &quot;Hillary Clinton&quot; as a positive training example.
+This approach is expensive in terms of both time and money, and if our corpus is
+large, will not yield enough data for our algorithms to work with. And because
+humans make errors, the resulting training data will most likely be noisy. </p>
+
+<p>An alternative approach to generating training data is <strong>distant supervision</strong>.
+In distant supervision, we make use of an already existing database, such as
+<a href="http://www.freebase.com/">Freebase</a> or a domain-specific database, to collect
+examples for the relation we want to extract. We then use these examples to
+automatically generate our training data. For example, Freebase contains the
+fact that Barack Obama and Michelle Obama are married. We take this fact, and
+then label each pair of &quot;Barack Obama&quot; and &quot;Michelle Obama&quot; that appear in the
+same sentence as a positive example for our marriage relation. This way we can
+easily generate a large amount of (possibly noisy) training data. Applying
+distant supervision to get positive examples for a particular relation is easy,
+but <a href="../basics/generating_negative_examples.html">generating negative examples</a>
+is more of an art than a science.</p>
 
             </div>
           </row>

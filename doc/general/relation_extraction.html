@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,35 +46,65 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Relation Extraction &amp; Distant Supervision</h1>
+              <h1>Relation Extraction</h1>
 
-<p><em>Relation extraction</em> helps to extract structured information from unstructured sources such as raw text. One may want to find interactions between drugs to build a medical database, understand the scenes in images, or extract relationships among people to build an easily searchable knowledge base. </p>
+<p><strong>Relation extraction</strong> helps extracting <strong>structured information</strong> from
+unstructured sources such as raw text. One may want to find interactions between
+drugs to build a medical database, understand the scenes in images, or extract
+relationships among people to build an easily searchable knowledge base. </p>
 
-<p>For example, let&#39;s assume we are interested in marriage relationships. We want to automatically figure out that &quot;Michelle Obama&quot; is the wife of &quot;Barack Obama&quot; from a corpus of raw text snippets such as &quot;Barack Obama married Michelle Obama in...&quot;. A naive approach would be to search news articles for indicative phrases, like &quot;married&quot; or &quot;XXX&#39;s spouse&quot;. This will yield some results, but human language is inherently ambiguous, and one cannot possibly come up with all phrases that indicate a marriage relationship. A natural next step would be to use Machine Learning techniques to extract the relations. If we have some labeled training data, examples of pairs of people that are in a marriage relationship, we can train a Machine Learning classifier to automatically learn the patterns for us. This sounds like a great idea, but there are several challenges:</p>
+<p>For example, let&#39;s assume we are interested in marriage relationships. We want
+to automatically figure out that &quot;Michelle Obama&quot; is the wife of &quot;Barack Obama&quot;
+from a corpus of raw text snippets such as &quot;Barack Obama married Michelle Obama
+in...&quot;. A naive approach would be to search news articles for indicative
+phrases, like &quot;married&quot; or &quot;XXX&#39;s spouse&quot;. This will yield some results, but
+human language is inherently ambiguous, and one cannot possibly come up with all
+phrases that indicate a marriage relationship. A natural next step would be to
+use machine learning techniques to extract the relations. If we have some
+labeled training data, examples of pairs of people that are in a marriage
+relationship, we can train a machine learning classifier to automatically learn
+the patterns for us. This sounds like a great idea, but there are several
+challenges:</p>
 
 <ul>
-<li>How do we disambiguate between words that refer to the same entity? For example, a sentence may refer to &quot;Barack Obama&quot; as &quot;Barack&quot; or &quot;The president&quot;.</li>
+<li>How do we disambiguate between words that refer to the same entity? For
+example, a sentence may refer to &quot;Barack Obama&quot; as &quot;Barack&quot; or &quot;The
+president&quot;.</li>
 <li>How do we get training data for our Machine Learning model?</li>
 <li>How do we deal with conflicting or uncertain data? </li>
 </ul>
 
-<p>Let&#39;s take a look how we can address each of these problems, and how DeepDive can help us.</p>
+<h3><a name="entity" href="#"></a> Entity Linking</h3>
 
-<h3>Entity Linking</h3>
-
-<p>Before starting to extract relations it is a good idea to determine which words refer to the same &quot;object&quot; in the real world. These objects are called entities. For example, &quot;Barack&quot;, &quot;Obama&quot; or &quot;the president&quot; may refer to the entity &quot;Barack Obama&quot;. Let&#39;s say we extract relations about one of the words above. It would be helpful to combine them as being information about the same person. Figuring out which words, or <em>mentions</em>, refer to the same <em>entity</em> is called <em>Entity Linking</em>. There are various techniques to perform entity linking, ranging from simple string matching to more sophisticated Machine Learning approaches. In some domains we have a database of all known entities to link against, such as dictionary of all countries. In other domains, we need to be open to discovering new entities.</p>
-
-<h3>Distant Supervision for training data</h3>
-
-<p>Most Machine Learning techniques require a set of training data. A traditional approach for collecting training data is to have humans label a set of documents. For example, for the marriage relation, human annotators may label the pair &quot;Bill Clinton&quot; and &quot;Hillary Clinton&quot; as a positive training example. This approach is expensive in terms of both time and money, and if our corpus is large, will not yield enough data for our algorithms to work with. And because humans make errors, the resulting training data will most likely be noisy. </p>
-
-<p>An alternative approach to generating training data is <em>Distant Supervision</em>. In Distant Supervision, we make use of an already existing database, such as <a href="http://www.freebase.com/">Freebase</a> or a domain-specific database, to collect examples for the relation we want to extract. We then use these examples to automatically generate our training data. For example, Freebase contains the fact that Barack Obama and Michelle Obama are married. We take this fact, and then label each pair of &quot;Barack Obama&quot; and &quot;Michelle Obama&quot; that appear in the same sentence as a positive example for our marriage relation. This way we can easily generate a large amount of (possibly noisy) training data. Applying distant supervision to get positive examples for a particular relation is easy, but generating negative examples is <a href="generating_negative_examples.html">a bit of an art than science</a>.</p>
+<p>Before starting to extract relations it is a good idea to determine which words
+refer to the same &quot;object&quot; in the real world. These objects are called
+<strong>entities</strong>. For example, &quot;Barack&quot;, &quot;Obama&quot; or &quot;the president&quot; may refer to the
+entity &quot;Barack Obama&quot;. Let&#39;s say we extract relations about one of the words
+above. It would be helpful to combine them as being information about the same
+person.  Figuring out which words, or <strong>mentions</strong>, refer to the same <strong>entity</strong>
+is a process called <strong>entity linking</strong>. There are various techniques to perform
+entity linking, ranging from simple string matching to more sophisticated
+machine learning approaches. In some domains we have a database of all known
+entities to link against, such as dictionary of all countries. In other domains,
+we need to be open to discovering new entities.</p>
 
 <h3>Dealing with uncertainty</h3>
 
-<p>Given enough training data we can use Machine Learning algorithms to extract entities and relations we care about. There is one problem left: Human language is inherently noisy. Words and phrases can be ambiguous, sentences are ungrammatical, and there are spelling mistakes. Our training data may have errors in it as well, and maybe we have made mistakes in the <em>entity linking</em> step, when figuring out which mentions refer to the same entity. This is where many Machine Learning approaches break down. They treat training or input data as &quot;correct&quot; and make predictions using this assumption.</p>
+<p>Given enough training data we can use machine learning algorithms to extract
+entities and relations we care about. There is one problem left: human language
+is inherently noisy. Words and phrases can be ambiguous, sentences are
+ungrammatical, and there are spelling mistakes. Our training data may have
+errors in it as well, and we may have made mistakes in the entity linking
+step. This is where many machine learning approaches break down: they treat
+training or input data as &quot;correct&quot; and make predictions using this assumption.</p>
 
-<p>DeepDive makes good use of uncertainty to improve predictions during the <a href="inference.html">probabilistic inference</a> step. For example, DeepDive may figure out that a certain mention of &quot;Barack&quot; is only 60% likely to actually refer to &quot;Barack Obama&quot;, and use this fact to discount the impact of that mention on the final result for the entity &quot;Barack Obama&quot;. DeepDive can also make use the domain knowledge, and allows users to encode rules such as &quot;If Barack is married to Michelle, then Michelle is married to Barack&quot; to improve the predictions.</p>
+<p>DeepDive makes good use of uncertainty to improve predictions during the
+<a href="inference.html">probabilistic inference</a> step. For example, DeepDive may figure
+out that a certain mention of &quot;Barack&quot; is only 60% likely to actually refer to
+&quot;Barack Obama&quot;, and use this fact to discount the impact of that mention on the
+final result for the entity &quot;Barack Obama&quot;. DeepDive can also make use the
+domain knowledge, and allows users to encode rules such as &quot;If Barack is married
+to Michelle, then Michelle is married to Barack&quot; to improve the predictions.</p>
 
             </div>
           </row>

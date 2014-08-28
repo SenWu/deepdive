@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,9 +46,73 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Generating negative examples</h1>
+              <h1>DeepDive FAQ</h1>
 
-<p>We are still working on it, stay tuned!</p>
+<h3>I get a Java out of memory error, what should I do?</h3>
+
+<p>Refer to the <a href="../advanced/performance.html">Performance Tuning guide</a> and try the following:</p>
+
+<ul>
+<li><p>Set the JVM heap size using the <code>-Xmx</code> option flag</p></li>
+<li><p>If the errors happens while executing an JSON extractor, try decreasing the input
+or output batch size for your extractors. See the <a href="configuration.html#json">Configuration
+reference</a> for details.</p></li>
+</ul>
+
+<h3>How can I debug my extractors?</h3>
+
+<p>See <a href="extractors.html#debug_extractors">debugging extractors</a> section in extractor documentation.</p>
+
+<h3>Can I have features for dictionary entries with precise terms (e.g.,</h3>
+
+<p>Cretaceous), and less-precise terms (e.g., Recent, Word)?</p>
+
+<p>We suggest that you separate them into two features or inference rules, so that
+DeepDive can learn the weight for each dictionary and choose the one to trust.</p>
+
+<h3>If I have two inference rules with the same weight formula, will they share</h3>
+
+<p>the same weights?</p>
+
+<p>No, weights are unique within each inference rule, this is achieved in DeepDive
+by concating a &#39;&#39;prefix&#39;&#39; to the
+feature, which by default is the name of the corresponding rule. You can force 
+the sharing of weights by specifying this 
+prefix, for example:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">rule1 <span class="o">{</span>
+  weight       : ?<span class="o">(</span>relation.someField<span class="o">)</span>
+  weightPrefix : <span class="s2">&quot;myPrefix&quot;</span>
+<span class="o">}</span>
+rule2 <span class="o">{</span>
+  weight       : ?<span class="o">(</span>relation.someField<span class="o">)</span>
+  weightPrefix : <span class="s2">&quot;myPrefix&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<h3>I am getting a &quot;java.lang.UnsupportedClassVersionError&quot; error. What can I do?</h3>
+
+<p>This happens when you are using an older JRE version not supprted by DeepDive.
+Make sure you are using JRE version 1.7.0_45 or greater.</p>
+
+<h3>I am using Greenplum, and getting an &quot;ERROR: Cannot parallelize an UPDATE</h3>
+
+<p>statement that updates the distribution columns&quot;</p>
+
+<p>You should add a <code>DISTRIBUTED BY</code> clause in all <code>CREATE TABLE</code> commands. Make
+sure you distribute your tables in a correct way: do not use the column <code>id</code> as
+distribution key. Do not use a distribution key that is not initially assigned.</p>
+
+<h3>I am using a plpy_extractor and I get  &quot;ERROR: could not access file</h3>
+
+<p>&quot;$libdir/plpython2&quot;: No such file or directory&quot;</p>
+
+<p>Make sure your database server supports the PL/python language.</p>
+
+<h3>During sampling, I get an &quot;error while loading shared libraries: libnuma.so.1&quot;</h3>
+
+<p>Make sure you have configured the dependencies of the DimmWitted
+<a href="sampler.html">sampler</a> and that you properly set the necessary environmental
+variables. Refer to the <a href="installation.html#sampler">Installation guide</a> for
+details.</p>
 
             </div>
           </row>

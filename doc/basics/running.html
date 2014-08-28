@@ -1,0 +1,229 @@
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="DeepDive" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://deepdive.stanford.edu/stylesheets/application.css" />
+    <link rel="canonical" href="http://deepdive.stanford.edu">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://deepdive.stanford.edu/javascripts/application.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDive</title>
+  </head>
+
+  <body>
+      <script type="text/javascript">
+window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
+window.analytics.load("h6uwk48gwg");
+window.analytics.page();
+</script>
+      <a href="https://github.com/hazyresearch/deepdive" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+      <div id="header">
+        <div class="container">
+          <row>
+            <div class="col-md-4 col-md-offset-1">
+              <a href="http://deepdive.stanford.edu/" class="deepdive-logo">
+              <img src="http://deepdive.stanford.edu/images/header_logo.png" style="width: 250px;"/>
+              </a> 
+            </div>
+            <div class="col-md-6 col-md-offset-1">
+              <ul class="list-unstyled list-inline" id="header-nav">
+                <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
+                <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
+              </ul>
+              
+            </div>
+          </row>
+        </div>
+      </div>
+
+      <section id="main">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Running a DeepDive application</h1>
+
+<p>This document describes how to run a DeepDive application, how to query the
+results of the analysis, and how to define <em>pipelines</em> to select a subset of
+extractor and/or inference rules to run.</p>
+
+<p>This document assumes that DeepDive is installed and the database server is
+running. See the <a href="installation.html">Installation guide</a> for details.</p>
+
+<p>We refer the interested reader to the <a href="writing.html">&quot;Writing a new
+application&quot;</a> document or to the
+<a href="walkthrough/walkthrough.html">Walktrough</a> for details about writing DeepDive
+applications.</p>
+
+<h2>Running</h2>
+
+<p>Running an application is as simple as running</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">deepdive -c $APP_HOME/application.conf
+</code></pre></div>
+<p>where <code>$APP_HOME</code> is the application directory.</p>
+
+<p>As explained in the <a href="writing.html">Writing applications guide</a> it is best to
+include the above command in a <code>run.sh</code> script responsible for</p>
+
+<ul>
+<li>(if needed) create the database and the relations used by the application.</li>
+<li>set the appropriate environmental variables (possibly by including a <code>env.sh</code>
+script)</li>
+<li>actually invoking DeepDive with the above command</li>
+</ul>
+
+<h3>Example</h3>
+
+<p>As an example we now show how to run  the built-in &#39;spouse_example&#39; application.
+This example uses a news articles dataset. The articles are in plain text
+format. The goal of the application is to extract spouse relationships between
+individuals from the raw text of the articles. In other words, we want DeepDive
+to compute information that can help us determining who is married to who.  </p>
+
+<p>In the remainder of the document we denote the DeepDive installation directory
+as &#39;DEEPDIVE_HOME&#39;.</p>
+
+<p>Start by entering the &#39;spouse_example&#39; directory:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">cd </span>DEEPDIVE_HOME/examples/spouse_example
+</code></pre></div>
+<p>The data resides in the &#39;data/&#39; subdirectory. The news articles are in the
+&#39;data/articles_dump.csv&#39; file. Have a look at this file to get a rough idea
+on what data DeepDive is processing.</p>
+
+<p>For this example run, we use the default &#39;json<em>extractor&#39; extractor, residing in
+the &#39;default</em>extractor&#39; directory. Other extractors like &#39;tsv<em>extractor&#39; and
+&#39;plpy</em>extractor&#39; can also be found in the application directory. For more
+details on extractors, see the <a href="extractors.html">&quot;Writing extractors&quot;</a> document.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">cd </span>default_extractor
+./run.sh
+</code></pre></div>
+<p>This script setups the database <code>deepdive_spouse_default</code> and run the
+application. The application takes about 100 seconds to complete. If the
+execution completes with success, the output will look like the following:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">13:05:28 [profiler] INFO  --------------------------------------------------
+13:05:28 [profiler] INFO  Summary Report
+13:05:28 [profiler] INFO  --------------------------------------------------
+13:05:28 [profiler] INFO  ext_clear_table SUCCESS [137 ms]
+13:05:28 [profiler] INFO  ext_people SUCCESS [7087 ms]
+13:05:28 [profiler] INFO  ext_has_spouse_candidates SUCCESS [6444 ms]
+13:05:28 [profiler] INFO  ext_has_spouse_features SUCCESS [37349 ms]
+13:05:28 [profiler] INFO  inference_grounding SUCCESS [34316 ms]
+13:05:28 [profiler] INFO  inference SUCCESS [14779 ms]
+13:05:28 [profiler] INFO  calibration plot written to $DEEPDIVE_HOME/out/2014-06-23T130346/calibration/has_spouse.is_true.png [0 ms]
+13:05:28 [profiler] INFO  calibration SUCCESS [1133 ms]
+13:05:28 [profiler] INFO  --------------------------------------------------
+13:05:28 [taskManager] INFO  Completed task_id=report with Success(Success(()))
+13:05:28 [taskManager] INFO  1/1 tasks eligible.
+13:05:28 [taskManager] INFO  Tasks not_eligible: Set()
+[success] Total time: 103 s, completed Jun 23, 2014 1:05:28 PM
+</code></pre></div>
+<h2><a name="results" href="#"></a> Results</h2>
+
+<p>DeepDive stores all the results in the application database. For our example
+application, this is the &#39;deepdive<em>spouse</em>default&#39; database. </p>
+
+<p>For each query variable, DeepDive generates a view called
+<code>[TABLE]_[VARIABLE_NAME]_inference</code>, which contains the original data, augmented
+with a <code>expectation</code> column, which is the result of the inference step. </p>
+
+<p>For example, the <code>has_spouse_is_true_inference</code> has the
+following schema:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"> View &quot;public.has_spouse_is_true_inference&quot;
+
+   Column    |       Type       | Modifiers
+-------------+------------------+-----------
+ person1_id  | bigint           |
+ person2_id  | bigint           |
+ sentence_id | bigint           |
+ description | text             |
+ is_true     | boolean          |
+ relation_id | bigint           |
+ id          | bigint           |
+ category    | bigint           |
+ expectation | double precision |
+</code></pre></div>
+<p>To inspect the results, it is sufficient to run a query on this table. The
+following example query would return some of the marriage relationships that
+have probability more than 0.9 to be true:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">psql -d deepdive_spouse_default -c <span class="s2">&quot;</span>
+<span class="s2">  SELECT description, expectation</span>
+<span class="s2">  FROM has_spouse_is_true_inference</span>
+<span class="s2">  WHERE expectation &gt; 0.9 and expectation &lt; 1</span>
+<span class="s2">  ORDER BY random() LIMIT 5;</span>
+<span class="s2">&quot;</span>
+</code></pre></div>
+<p>The output is formatted as &#39;person1-person2&#39; like in the following example:</p>
+
+<p>description   | expectation 
+----------------+-------------
+ Obama-Michelle |       0.982 </p>
+
+<p>This means that &#39;Obama&#39; is married to &#39;Michelle&#39; with probability of 0.982.</p>
+
+<p>The learned weights for the factors are stored in the table
+<code>dd_inference_results_weights</code>. DeepDive creates a view called
+<code>dd_inference_result_mapped_weights</code> which contains the feature and the
+learned values sorted by absolute value.</p>
+
+<p>Calibration plots allow to evaluate the quality of the results. For more details
+about inspecting the learned weights and using calibration plots, see the
+<a href="calibration.html">Calibration guide</a>.</p>
+
+<h2><a name="pipelines" href="#"></a> Pipelines</h2>
+
+<p>DeepDive allows to define <em>pipelines</em> to specify which extractors and inference
+rules are active and should be executed. This is useful for debugging purposes.</p>
+
+<p>You can define custom pipelines by adding the following configuration directives:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">    deepdive <span class="o">{</span> 
+      pipeline.run: myPipeline 
+      pipeline.pipelines <span class="o">{</span> myPipeline: <span class="o">[</span> extractor1 extractor2 inferenceRule1 <span class="o">]</span> <span class="o">}</span> 
+    <span class="o">}</span>
+</code></pre></div>
+<p>Refer to the <a href="configuration.html#pipelines">configuration reference</a> for details
+about the syntax of these directives.</p>
+
+<p>When the <code>pipeline.run</code> directive is not specified, DeepDive executes all
+extractors and inference rules. </p>
+
+<p>You can set <code>pipeline.relearn_from</code> to an output directory of a previous
+execution of DeepDive to use an existing factor graph for learning and
+inference: </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">deepdive {
+  pipeline.relearn_from: &quot;/PATH/TO/DEEPDIVE/HOME/out/2014-05-02T131658/&quot;
+}
+</code></pre></div>
+<p>In this case DeepDive would skip all extractors. This could be useful for tuning
+the sampler parameters.</p>
+
+            </div>
+          </row>
+        </div>
+      </section>
+    
+      <footer id="footer">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <p class="pull-left"> 
+                Copyright, 2014 deepdive.stanford.edu
+                ⋅
+                <a href="mailto:contact.hazy@gmail.com">Questions? Email us</a>
+              </p>
+              <p class="pull-right"> 
+                Visit DeepDive on <a href="https://github.com/hazyresearch/deepdive" target="_blank">Github</a> 
+              </p>
+            </div>
+          </row>
+        </div>
+      </footer>
+
+    
+  
+  </body>
+</html>

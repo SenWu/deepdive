@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,50 +46,63 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Performance Tuning</h1>
+              <h1>Declaring inference variables in the schema</h1>
 
-<p>If you are dealing with large amounts of data then you may find bottlenecks in various parts of the system. The following describes parameters you can use to improve performance.</p>
+<p>This document describe how to declare random variables on which DeepDive
+performs inference and give details about how to use <a href="#multinomial">Categorical/Multinomial
+variables</a>.</p>
 
-<h3>Setting the JVM heap size</h3>
-
-<p>When running DeepDive you should set the maximum heap size for the Java virtual machine using the &quot;-Xmx&quot; flag. The default heap size is the smaller of 1/4th of the physical memory or 1GB. When using <a href="http://www.scala-sbt.org/">SBT</a> to run DeepDive, you can set the option as follows:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">SBT_OPTS=&quot;-Xmx8g&quot; sbt &quot;run -c path_to_application.conf&quot;
+<p>DeepDive requires the user to specify the name and type of the random variables
+on which to perform <a href="../general/inference.html">inference</a>. Currently DeepDive
+support Boolean (i.e., Bernoulli) variables and Categorical/Multinomial
+variables. Random variables and their types are declared in the
+<code>schema.variables</code> section of the <code>application.conf</code> file. The following is an
+example of defining the schema with two Boolean variables:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  schema.variables <span class="o">{</span>
+    people.smokes: Boolean
+    people.has_cancer: Boolean
+  <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div>
-<h3>Setting extractor parallelism and batch sizes</h3>
+<p>In the above example <code>smokes</code> and <code>has_cancer</code> are Boolean attributes in the
+<code>people</code> table. The name of variables <em>must</em> be in the &#39;[table].[column]&#39;
+format.</p>
 
-<p>You can execute one extractor in parallel on multiple threads using the <code>paralleism</code> option. You can use the <code>input_batch_size</code> option to define how many tuples each extractor should receive at once, and the <code>output_batch_size</code> option to define how many extracted tuples should be inserted into the data store at once. The <a href="extractors.html">extractor documentation</a> contains more details about these options. </p>
+<h2><a name="multinomial" href="#"></a> Categorical/Multinomial variables</h2>
 
-<h3>Setting the batch size for factor graph construction</h3>
-
-<p>By default, DeepDive inserts variables, factors and weights in batches defined by the underlying data store. The default for PostgreSQL is 50,000. If you have a large amount of memory you may overwrite the batch size using the following configuration setting.</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">deepdive {
-  inference.batch_size = 100000
-}
+<p>DeepDive supports multinomial variables, which take integer values ranging from
+0 to a user-specified upper bound. In order to use a multinomial variable, you
+can declare it in the <code>schema.variables</code> directive in <code>application.conf</code> using
+type <code>Categorical(N)</code>, to specify that the variable domain is be 0, 1, ..., N-1.
+The schema definition would be  look like</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">schema.variables <span class="o">{</span>
+  <span class="o">[</span>table<span class="o">]</span>.<span class="o">[</span>column<span class="o">]</span>: Categorical<span class="o">(</span>10<span class="o">)</span>
+<span class="o">}</span>
 </code></pre></div>
-<h3>Gibbs sampler options</h3>
+<p>The factor function for multinomial is <code>Multinomial</code>. It takes multinomial
+variables as arguments, and is equivalent to having indicator functions for each
+combination of variable assignments. </p>
 
-<p>You can optionally parse command line options to the Gibbs sampler executable. The default sampler options are <code>-l 300 -s 1 -i 500 -a 0.1</code>. Allowed options are:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">-l &lt;value&gt; | --learning_epochs &lt;value&gt;
-      number of epochs for learning (required)
--i &lt;value&gt; | --inference_epochs &lt;value&gt;
-      number of epochs for inference (required)
--s &lt;value&gt; | --learning_samples_per_epoch &lt;value&gt;
-      number of samples for learning per epoch
--a &lt;value&gt; | --alpha &lt;value&gt;
-      Initial stepsize (learning rate)
--d &lt;value&gt; | --diminish &lt;value&gt;
-      Decay of stepsize per epoch
+<p>For examples, if <code>a</code> is a variable taking values 0, 1, 2, and <code>b</code> is a variable
+taking values 0, 1. Then, <code>Multinomial(a, b)</code> is equivalent to the following
+factors between a and b</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">I{a = 0, b = 0}
+I{a = 0, b = 1}
+I{a = 1, b = 0}
+I{a = 1, b = 1}
+I{a = 2, b = 0}
+I{a = 2, b = 1}
 </code></pre></div>
-<p>You an specify options in DeepDive as follows:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">deepdive {
-  sampler.sampler_args: &quot;-l 1000 -s 10 -i 1000&quot;
-}
-</code></pre></div>
-<p>If your learning does not converge (e.g. very large absolute values of weights), you can try to increase the number of learning iterations <code>-l</code>, decrease learning rate <code>-a</code>, or using faster decay (smaller <code>-d</code>). </p>
+<p>Note that each of the factor above has a corresponding weight, i.e., we have one
+weight for each possible assignment of variables in the multinomial factor.</p>
 
-<p>On the other hand, if results converge to a local optimum (e.g. calibration plot looks not ideal), you can try increasing learning rate, or using a slower decay.</p>
+<h3>Chunking Example</h3>
 
-<p>Also check out the documentation of our <a href="sampler.html">high-speed sampler</a>.</p>
+<p>We include a typical usage example of multinomial variables in the chunking
+example under <code>examples/chunking</code>. A walkthrough this example, detailing how to
+specify Conditional Random Fields and perform Multi-class Logistic Regression is
+available <a href="chunking.html">here</a>.</p>
 
             </div>
           </row>

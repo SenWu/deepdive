@@ -1,0 +1,216 @@
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="DeepDive" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://deepdive.stanford.edu/stylesheets/application.css" />
+    <link rel="canonical" href="http://deepdive.stanford.edu">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://deepdive.stanford.edu/javascripts/application.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDive</title>
+  </head>
+
+  <body>
+      <script type="text/javascript">
+window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
+window.analytics.load("h6uwk48gwg");
+window.analytics.page();
+</script>
+      <a href="https://github.com/hazyresearch/deepdive" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+      <div id="header">
+        <div class="container">
+          <row>
+            <div class="col-md-4 col-md-offset-1">
+              <a href="http://deepdive.stanford.edu/" class="deepdive-logo">
+              <img src="http://deepdive.stanford.edu/images/header_logo.png" style="width: 250px;"/>
+              </a> 
+            </div>
+            <div class="col-md-6 col-md-offset-1">
+              <ul class="list-unstyled list-inline" id="header-nav">
+                <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
+                <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
+              </ul>
+              
+            </div>
+          </row>
+        </div>
+      </div>
+
+      <section id="main">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Writing a new DeepDive application</h1>
+
+<p>This document describes how to create a new application that uses DeepDive to
+analyze data. </p>
+
+<p>This task is composed by a number of steps:</p>
+
+<ol>
+<li>Creating the application skeleton </li>
+<li>Configuring the database connection</li>
+<li>Importing the data</li>
+<li>Writing extractors</li>
+<li>Writing the inference schema</li>
+<li>Writing inference rules</li>
+<li>Testing</li>
+</ol>
+
+<h3>1 - Creating the application skeleton</h3>
+
+<p>We start by creating a new folder <code>app/testapp</code> in the <code>deepdive</code> directory. All
+files for our application will reside in this directory. </p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">mkdir -p app/testapp 
+<span class="nb">cd </span>app/testapp
+</code></pre></div>
+<p>DeepDive&#39;s main entry point is a file called <code>application.conf</code> which contains
+the database connection information as well as the specification for feature
+extraction and for specifying the schema and the inference rules for the factor
+graph. It is often useful to have a small &#39;env.sh&#39; script to specify
+environmental variables and a <code>run.sh</code> script that loads those variables and
+executes the DeepDive pipeline. The DeepDive distribution provides simple
+templates for both of these scripts and for the <code>application.conf</code> file. We copy
+these templates to our directory with the following commands: </p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">cp ../../examples/template/application.conf .
+cp ../../examples/template/run.sh .
+cp ../../examples/template/env.sh .
+</code></pre></div>
+<p>In <code>env.sh</code> there is a placeholder line <code>export DBNAME=</code> that must be modified
+to contain the name of the database used by the application: </p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># File: env.sh</span>
+...
+<span class="nb">export </span><span class="nv">DBNAME</span><span class="o">=</span>deepdive_testapp 
+...
+</code></pre></div>
+<p>Make sure the database is created. Execute:
+<code>bash
+createdb deepdive_testapp
+</code></p>
+
+<p>We can try executing the <code>run.sh</code> script now to verify that everything is
+working correctly:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">./run.sh
+</code></pre></div>
+<p>Since we have not defined any extractors or inference rules, the results will
+not be interesting, but DeepDive should run successfully from end to end. If
+this is the case, the summary report should look like this: </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">15:57:55 [profiler] INFO  --------------------------------------------------
+15:57:55 [profiler] INFO  Summary Report
+15:57:55 [profiler] INFO  --------------------------------------------------
+15:57:55 [profiler] INFO  --------------------------------------------------
+</code></pre></div>
+<h3>2 - Configuring the database connection</h3>
+
+<p>We define the connection to the PostgreSQL instance in the <code>application.conf</code>
+file. The URL of the instance should be specified in <a href="http://jdbc.postgresql.org/documentation/80/connect.html">JDBC
+format</a>. A username
+and password can also be specified:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">    deepdive: <span class="o">{</span>
+      db.default <span class="o">{</span>
+        driver   : <span class="s2">&quot;org.postgresql.Driver&quot;</span>
+        url      : <span class="s2">&quot;jdbc:postgresql://[host]:[port]/[database_name]&quot;</span>
+        user     : <span class="s2">&quot;deepdive&quot;</span>
+        password : <span class="s2">&quot;&quot;</span>
+        dbname   : <span class="o">[</span>database_name<span class="o">]</span>
+        host     : <span class="o">[</span>host<span class="o">]</span>
+        port     : <span class="o">[</span>port<span class="o">]</span>
+
+      <span class="o">}</span>
+    <span class="o">}</span>
+</code></pre></div>
+<p>For advanced connection pool options refer to the <a href="http://scalikejdbc.org/documentation/configuration.html">Scalikejdbc
+configuration</a>.</p>
+
+<h3><a name="loading" href="#"></a> 3 - Importing the data</h3>
+
+<p>DeepDive assumes that the schema for the application has been created in the
+database. This means that all relations used by any of the extractors and inference
+rules must exist before running DeepDive. It is recommended to do this in a data
+preparation script, as shown in the <a href="walkthrough/walkthrough.html">example
+walkthrough</a> or in the examples that ship with
+deepdive. It is <strong>mandatory</strong> for <strong>all relations</strong> that will contain variables
+to have a <strong>unique primary key called <code>id</code></strong>. If these tables are populated by
+an <a href="extractors.html">extractor</a>, the extractor should fill the <code>id</code> column with
+<code>NULL</code> values.</p>
+
+<h3><a name="extractors" href="#"></a> 4 - Writing extractors</h3>
+
+<p>DeepDive supports <a href="extractors.html">multiple types of extractors</a> to perform
+<a href="overview.html#extractors">feature extraction</a>. The output of an extractor is
+written back to the data store by DeepDive, and can be used in other extractors
+and/or during the inference step. Users can also specify extractors that simply
+execute SQL queries or an arbitrary shell commands. The <a href="extractors.html">&#39;Writing
+extractors&#39;</a> document contains an in-depth description of the
+available types of extractors complete with examples.</p>
+
+<h3><a name="schema" href="#"></a> 5 - Writing the inference schema</h3>
+
+<p>The schema is used to define the <a href="../general/inference.html#variables">query variable nodes of the factor
+graph</a>. Each variable has a data type
+associated with it. Currently, DeepDive supports Boolean variables and
+<a href="schema.html#multinomial">Multinomial/Categorical variables</a>. See the [&#39;Defining
+inference variables in the schema&#39;][schema.html] for more information and
+examples.</p>
+
+<h3><a name="inference" href="#"></a> 6 - Writing inference rules</h3>
+
+<p>DeepDive exposes a language to easily build factor graphs by writing <em>rules</em>
+that define the relationships between variables. For example, the following rule
+states that if a person smokes, he or she is likely to have cancer, and that the
+weight of the rule should be learned automatically based on training data
+(special value &#39;?&#39;):</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">smokesFactor {
+  input_query : &quot;&quot;&quot;SELECT * from people&quot;&quot;&quot;
+  function    : &quot;Imply(people.smokes, people.has_cancer)&quot;
+  weight      : ?
+}
+</code></pre></div>
+<p>DeepDive&#39;s language can express complex relationships that use extracted
+features. Refer to the <a href="inference_rules.html">guide for writing inference rules</a>
+and to the <a href="inference_rule_functions.html">&#39;Inference Rule Function Reference&#39;</a>
+for in-depth information about writing inference rules.</p>
+
+<h3>7 - Running, testing, and evaluating the results</h3>
+
+<p>For details about running an application and querying the results see the
+<a href="running.html">appropriate document</a>. Writing an application is an iterative
+process that requires progressive specification and refinements of extractors,
+schema, and inference rules. DeepDive tries to simplify this task by providing
+<em>calibration data</em> and plots, as explained in the <a href="calibration.html">calibration
+guide</a>. While testing extractors and inference rules, it can be
+useful to execute only a subset of them. This is possible by <a href="running.html#pipelines">configuring
+pipelines</a>. </p>
+
+            </div>
+          </row>
+        </div>
+      </section>
+    
+      <footer id="footer">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <p class="pull-left"> 
+                Copyright, 2014 deepdive.stanford.edu
+                ⋅
+                <a href="mailto:contact.hazy@gmail.com">Questions? Email us</a>
+              </p>
+              <p class="pull-right"> 
+                Visit DeepDive on <a href="https://github.com/hazyresearch/deepdive" target="_blank">Github</a> 
+              </p>
+            </div>
+          </row>
+        </div>
+      </footer>
+
+    
+  
+  </body>
+</html>

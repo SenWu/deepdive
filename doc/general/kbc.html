@@ -1,0 +1,210 @@
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="DeepDive" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://deepdive.stanford.edu/stylesheets/application.css" />
+    <link rel="canonical" href="http://deepdive.stanford.edu">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://deepdive.stanford.edu/javascripts/application.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDive</title>
+  </head>
+
+  <body>
+      <script type="text/javascript">
+window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
+window.analytics.load("h6uwk48gwg");
+window.analytics.page();
+</script>
+      <a href="https://github.com/hazyresearch/deepdive" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+      <div id="header">
+        <div class="container">
+          <row>
+            <div class="col-md-4 col-md-offset-1">
+              <a href="http://deepdive.stanford.edu/" class="deepdive-logo">
+              <img src="http://deepdive.stanford.edu/images/header_logo.png" style="width: 250px;"/>
+              </a> 
+            </div>
+            <div class="col-md-6 col-md-offset-1">
+              <ul class="list-unstyled list-inline" id="header-nav">
+                <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
+                <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
+              </ul>
+              
+            </div>
+          </row>
+        </div>
+      </div>
+
+      <section id="main">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Knowledge Base Construction</h1>
+
+<p>Knowledge base construction (KBC) is the process of populating a knowledge base
+(KB) with facts (or assertions) extracted from data (e.g., text, audio, video,
+tables, diagrams, ...). For example,  one may want to build a medical knowledge
+base of interactions between drugs and diseases, a Paleobiology knowledge base
+to understand when and where did dinosaurs live, or a knowledge base of people&#39;s
+relationships such as spouse, parents or sibling. DeepDive can be used to
+facilitate KBC.</p>
+
+<p>As a concrete example, one may use DeepDive to build an application to extract
+spouse relations from sentences in the Web. Figure 1 below shows such an
+application, where the input consists of sentences like &quot;U.S President Barack
+Obama&#39;s wife Michelle Obama ...&quot;, and DeepDive&#39;s output consists of tuples in an
+<code>has_spouse</code> table representing the fact that, for example, &quot;Barack Obama&quot; is
+married to &quot;Michelle Obama&quot;. DeepDive also produces a probability associated to
+the fact, representing the system&#39;s confidence that the fact is true (refer to
+the <a href="inference.html">&#39;Probabilistic inference&#39; document</a> for more details
+about this concept).</p>
+
+<!-- ![Data flow](http://deepdive.stanford.edu/images/walkthrough/example_hasspouse.png) -->
+
+<p style="text-align: center;"><img src="http://deepdive.stanford.edu/images/walkthrough/example_hasspouse.png" alt="Data flow" style="width: 50%; text-align: center;"/>
+  <br />
+  <strong>Figure 1: An example KBC application</strong>
+</p>
+
+<h3>KBC Terminology</h3>
+
+<p>KBC uses specific terms to refer to the objects it manipulates. The following is
+a list of the most important ones</p>
+
+<ul>
+<li><p><a name="entity" href="#"></a> An <strong>entity</strong> is an object in the real world,
+such as a person, an animal, a time period, a location, etc. For example, the
+person &quot;Barack Obama&quot; is an entity.</p></li>
+<li><p><strong>Entity-level data</strong> are relational data over the domain of conceptual
+entities (as opposed to language-dependent mentions), such as relations in a
+knowledge base, e.g. <a href="http://www.freebase.com/m/02mjmr">&quot;Barack Obama&quot; in
+Freebase</a>.</p></li>
+<li><p>A <strong>mention</strong> is a reference to an entity, such as the word &quot;Barack&quot; in the
+sentence &quot;Barack and Michelle are married&quot;. </p></li>
+<li><p><strong>Mention-level data</strong> are textual data with mentions of entities, such as
+sentences in web articles, e.g. sentences in New York Times articles.</p></li>
+<li><p><a name="linking" href="#"></a> <strong>Entity linking</strong> is the process to find out
+which entity is a mention referring to. For example, &quot;Barack&quot;, &quot;Obama&quot; or &quot;the
+president&quot; may refer to the same entity &quot;Barack Obama&quot;, and entity linking is
+the process to figure this out.</p></li>
+<li><p>A <strong>mention-level relation</strong> is a relation among mentions rather than
+entities. For example, in a sentence &quot;Barack and Michelle are married&quot;, the
+two mentions &quot;Barack&quot; and &quot;Michelle&quot; has a mention-level relation of
+<code>has_spouse</code>.</p></li>
+<li><p>An <strong>entity-level relation</strong> is a relation among entities. For example, the
+entity &quot;Barack Obama&quot; and &quot;Michelle Obama&quot; has an entity-level relation of
+<code>has_spouse</code>.</p></li>
+</ul>
+
+<p>The relationships between these concepts (also known as the data model) is
+represented in Figure 2 below.</p>
+
+<p style="text-align: center;"><img src="http://deepdive.stanford.edu/images/walkthrough/datamodel.png" alt="Data Model" style="width: 60%; text-align: center;"/>
+  <br />
+  <strong>Figure 2: Data model for KBC</strong>
+</p>
+
+<!-- Note that this data model is what we use in this example walkthrough, but
+it isn't the only data model that that can be used for KBC. For example,
+traditional distant supervision doesn't necessarily model mention-level
+relations in that way (which I think is called at-least-once semantics).
+ -->
+
+<h3>KBC Data flow</h3>
+
+<p>In an typical KBC application, the <strong>input</strong> of the system is a collection of
+raw articles in text format, while  the <strong>output</strong> of the system is a database
+(the KB) containing the desired (entity-level or mention-level) relations.</p>
+
+<p>As explained in the <a href="../basics/overview.html">System overview</a>, the steps to
+obtained the output are the following:</p>
+
+<ol>
+<li>data preprocessing</li>
+<li>feature extraction</li>
+<li>factor graph generation by declarative language</li>
+<li>statistical inference and learning</li>
+</ol>
+
+<p>Specifically:</p>
+
+<ol>
+<li><p>In the <strong>data preprocessing</strong> step, DeepDive takes input data (articles in
+text format), loads them into a database, and parse the articles to obtain
+sentence-level information including words in each sentence, POS tags, named
+entity tags, etc.</p></li>
+<li><p>In the <strong>feature extraction</strong> step, DeepDive converts input data into
+relation signals called <strong>evidence</strong>, by running <a href="../basics/extractors.html">extractors</a>
+written by developers. Evidence includes: (1) candidates for (mention-level or
+entity-level) relations; (2) (linguistic) features for these candidates.</p></li>
+<li><p>In the next step, DeepDive uses evidence to <strong>generate a <a href="inference.html">factor
+graph</a></strong>. To instruct DeepDive about how to generate this
+factor graph, developers use a SQL-like declarative language to specify
+<a href="../basics/inference_rules.html">inference rules</a>.</p></li>
+<li><p>In the next step, DeepDive automatically performs <strong>learning and statistical
+inference</strong> on the generated factor graph.  learning, the values of <a href="inference.html">factor
+weights</a> specified in inference rules are calculated.
+These weights represent, intuitively, the confidence in the rule. During the
+inference step, the marginal probabilities of the variables are computed, which,
+in some cases, can represent the probability that a specific fact is true.</p></li>
+</ol>
+
+<p>After inference, the results are stored in a set of database tables.  The
+developer can <strong>get results</strong> via a SQL query, <strong>check results</strong> with a
+<a href="../basics/calibration.html">calibration plot</a>, and perform <strong>error analysis</strong>
+to improve results.</p>
+
+<p>As an example of this data flow, Figure 3 demonstrates how a sentence &quot;U.S
+President Barack Obama&#39;s wife Michelle Obama...&quot; go through the process (In this
+figure, we only highlight step 1--3):</p>
+
+<p style="text-align: center;"><img src="http://deepdive.stanford.edu/images/walkthrough/dataflow.png" alt="Data Flow" style="width: 75%; text-align: center;"/>
+  <br />
+  <strong>Figure 3: Data flow for KBC</strong>
+</p>
+
+<p>In the example above:</p>
+
+<ol>
+<li><p>During data preprocessing, the sentence is processed into words, POS tags and
+named entity tags; </p></li>
+<li><p>During feature extraction, DeepDive extracts (1) mentions of person and
+location, (2) candidate relations of <code>has_spouse</code>, and (3) <code>feature</code> of
+candidate relations (such as words between mentions).</p></li>
+<li><p>In factor graph generation, DeepDive use rules written by developers (like
+<code>inference_rule_1</code> above) to build a factor graph. </p></li>
+</ol>
+
+            </div>
+          </row>
+        </div>
+      </section>
+    
+      <footer id="footer">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <p class="pull-left"> 
+                Copyright, 2014 deepdive.stanford.edu
+                ⋅
+                <a href="mailto:contact.hazy@gmail.com">Questions? Email us</a>
+              </p>
+              <p class="pull-right"> 
+                Visit DeepDive on <a href="https://github.com/hazyresearch/deepdive" target="_blank">Github</a> 
+              </p>
+            </div>
+          </row>
+        </div>
+      </footer>
+
+    
+  
+  </body>
+</html>

@@ -1,0 +1,701 @@
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="DeepDive" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://deepdive.stanford.edu/stylesheets/application.css" />
+    <link rel="canonical" href="http://deepdive.stanford.edu">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://deepdive.stanford.edu/javascripts/application.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDive</title>
+  </head>
+
+  <body>
+      <script type="text/javascript">
+window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
+window.analytics.load("h6uwk48gwg");
+window.analytics.page();
+</script>
+      <a href="https://github.com/hazyresearch/deepdive" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+      <div id="header">
+        <div class="container">
+          <row>
+            <div class="col-md-4 col-md-offset-1">
+              <a href="http://deepdive.stanford.edu/" class="deepdive-logo">
+              <img src="http://deepdive.stanford.edu/images/header_logo.png" style="width: 250px;"/>
+              </a> 
+            </div>
+            <div class="col-md-6 col-md-offset-1">
+              <ul class="list-unstyled list-inline" id="header-nav">
+                <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
+                <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
+              </ul>
+              
+            </div>
+          </row>
+        </div>
+      </div>
+
+      <section id="main">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Writing extractors</h1>
+
+<p>Extractors are a powerful functionality provided by DeepDive to streamline
+<a href="overview.html#extractors">feature extraction</a>. This document presents the
+different types of extractors supported by DeepDive. Please refer to the
+<a href="configuration.html#extractors">Configuration reference</a> for a more structured
+presentation of each definition directive.</p>
+
+<h2>Styles of extractors</h2>
+
+<p>DeepDive supports two classes of extractors: <em>row-wise</em> and <em>procedural</em>. Each
+class contains different extractor <em>styles</em>:</p>
+
+<ul>
+<li><p>Row-wise extractors:</p>
+
+<ul>
+<li><a href="#json_extractor"><code>json_extractor</code></a>: highly flexible and compatible with
+previous systems, but with limited performance </li>
+<li><a href="#tsv_extractor"><code>tsv_extractor</code></a>: moderate flexibility and performance</li>
+<li><a href="#plpy_extractor"><code>plpy_extractor</code></a>: parallel database-built-in extractors
+with restricted flexibility</li>
+</ul></li>
+<li><p>Procedural extractors:</p>
+
+<ul>
+<li><a href="#sql_extractor"><code>sql_extractor</code></a>: a SQL command</li>
+<li><a href="#cmd_extractor"><code>cmd_extractor</code></a>: a shell command</li>
+</ul></li>
+</ul>
+
+<p>Row-wise extractors perform a user-defined function (UDF) on each tuple in the
+results of a input query against the database. One may think of these extractors
+as functions mapping  one input tuple to one or more output tuples, similar to
+a <code>map</code> or <code>flatMap</code> function in functional programming languages. Procedural
+extractors are arbitrary SQL or shell commands.</p>
+
+<p>Extractors are specified in the <code>extraction.extractors</code> section of the
+application configuration file. Each extractor is defined in a section that
+starts with the name of the extractor and containing the specifications for the
+instructor.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  extraction.extractors <span class="o">{</span>
+
+    anExtractor <span class="o">{</span>
+      <span class="c"># ...</span>
+    <span class="o">}</span>
+
+    anotherExtractor <span class="o">{</span>
+      <span class="c"># ...</span>
+  <span class="o">}</span>
+
+  <span class="c"># More Extractors ...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>The style of an extractor is specified using the <code>style</code> keyword in each
+extractor definition in the application configuration file. In the following
+example, <code>wordsExtractor</code> is a <code>tsv_extractor</code>:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  extraction.extractors <span class="o">{</span>
+
+    wordsExtractor <span class="o">{</span>
+      style: <span class="s2">&quot;tsv_extractor&quot;</span>
+      <span class="c"># ...</span>
+    <span class="o">}</span>
+    <span class="c"># More Extractors...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>If <code>style</code> is not specified, the system assumes the extractor has style <code>json_extractor</code>.</p>
+
+<h3><a name="json_extractor" href="#"></a> json_extractor (default)</h3>
+
+<p>A <code>json_extractor</code> takes each tuple in the output of an <code>input</code> query (for
+example, a SQL statement), and produces new tuples as output. These tuples are
+written to an <code>output_relation</code>. The transformation function is defined by the
+value of the <code>udf</code> keyword, which can be an arbitrary executable or shell
+command. </p>
+
+<p>The following is an example of an extractor definition:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">wordsExtractor <span class="o">{</span>
+  style           : <span class="s2">&quot;json_extractor&quot;</span>
+  input           : <span class="s2">&quot;&quot;&quot;SELECT * FROM titles&quot;&quot;&quot;</span>
+  output_relation : <span class="s2">&quot;words&quot;</span>
+  udf             : <span class="s2">&quot;words.py&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<h4>Input to a json_extractor</h4>
+
+<!--
+Currently DeepDive supports two types of extractor inputs for `json_extractor`:
+
+**1. Executing a database query**
+-->
+
+<p>A SQL statement for PostgresSQL, as in the example above.</p>
+
+<!--
+**2. Reading from a CSV or TSV File**
+
+Reading a file is useful for loading initial data. To specify which file to read
+and its format, the `input` directive of the extractor definition should look
+like the following:
+
+```bash
+input: CSV('path/to/file.csv')
+input: TSV('path/to/file.tsv')
+```
+-->
+
+<h4>Writing the UDF for a json_extractor</h4>
+
+<p>When a <code>json_extractor</code> is executed and if the <code>input</code> directive is a SQL query,
+DeepDive streams <em><a href="http://json.org/">JSON</a> objects</em> from the specified <code>input</code>
+to the <em>standard input</em> of the extractor UDF, one tuple per line. Such an object
+may look as follows:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">{ titles.title_id: 5, titles.title: &quot;I am a title&quot; }
+</code></pre></div>
+<p>Columns names are always prefixed with the name of the table. For example, if
+your query includes a <code>name</code> column from the <code>people</code> table, then the
+corresponding JSON key would be called <code>people.name</code>. This also applies to
+aliases. For example, <code>SELECT people.name AS text</code> would result in a JSON key
+called <code>people.text</code>. Aggregates are prepended with a dot and do not include the
+relation name.  For example <code>SELECT COUNT(*) AS num FROM people GROUP BY
+people.name</code> would result in a JSON key called <code>.num</code>.</p>
+
+<p>If instead the <code>input</code> directive specifies reading from a CSV or TSV file, each
+line streamed to the standard input of the UDF is an <em>array</em>, as in:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">[&quot;1&quot;, &quot;true&quot;, &quot;Hello World&quot;, &quot;&quot;]
+</code></pre></div>
+<p>The extractor UDF must output JSON objects to the <em>standard output</em>, one per
+line, independently of the format of the input. All output objects must have the
+same fields, so it may necessary to set the values for some fields to <code>null</code>.
+The following is an example of extractor output:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">{ title_id: 5, word: &quot;I&quot; } 
+{ title_id: 5, word: &quot;am&quot; } 
+{ title_id: 5, word: &quot;a&quot; } 
+{ title_id: 5, word: &quot;title&quot; } 
+</code></pre></div>
+<p>{ title_id: 6, word: null }</p>
+
+<p>When emitting tuples from the extractor, only use the column name of the
+<code>output</code> relation, without the relation name. In other words, do not use JSON
+keys like <code>people.name</code>, but keys with names like <code>name</code>.</p>
+
+<p>You can debug the extractor UDF by writing to <code>stderr</code> instead of <code>stdout</code>.
+Anything written to <code>stderr</code> appears in the DeepDive log file.</p>
+
+<p>The following is an example of a<code>json_extractor</code> UDF written in Python:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#! /usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">fileinput</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="c"># For each input row</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fileinput</span><span class="o">.</span><span class="n">input</span><span class="p">():</span>
+  <span class="c"># Load the JSON object</span>
+  <span class="n">row</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s">&quot;title&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="c"># Split the sentence by space</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&quot;title&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)):</span>
+      <span class="c"># Output the word</span>
+      <span class="k">print</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
+        <span class="s">&quot;title_id&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&quot;title_id&quot;</span><span class="p">]),</span> 
+        <span class="s">&quot;word&quot;</span><span class="p">:</span> <span class="n">word</span>
+      <span class="p">})</span>
+</code></pre></div>
+<h3><a name="tsv_extractor" href="#"></a> tsv_extractor</h3>
+
+<p>A <code>tsv_extractor</code> is very similar to the default <code>json_extractor</code>, but its
+performance is optimized:
+<a href="https://en.wikipedia.org/wiki/Tab-separated_values">TSV</a> is used instead of
+JSON to achieve higher processing speed. A <code>tsv_extractor</code> takes data defined by an
+<code>input</code> query and produces new tuples as output. These tuples are written to the
+<code>output_relation</code>. The function for this transformation can be any executable
+defined in <code>udf</code>:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">wordsExtractor {
+  style           : &quot;tsv_extractor&quot;
+  input           : &quot;&quot;&quot;SELECT * FROM titles&quot;&quot;&quot;
+  output_relation : &quot;words&quot;
+  udf             : &quot;words.py&quot;
+}
+</code></pre></div>
+<p>Extractors with this style <em>must</em> have a SQL query as <code>input</code> (not a TSV or CSV
+file).</p>
+
+<p>When DeepDive executes an extractor with this style, the following happens:</p>
+
+<ol>
+<li><p>The results of the input query are unloaded into multiple TSV files.</p>
+
+<p>Developers can set <code>input_batch_size</code> to specify the number of lines in
+each TSV file, and the input query will be split into multiple files
+based on this number. The default value of <code>input_batch_size</code> is 10000.</p></li>
+<li><p>Multiple instances of the extractor UDF are executed in parallel, with the
+TSV files piped into the standard input of these instances.</p></li>
+<li><p>The outputs (to standard output) of the extractor UDF instances (also in
+TSV format) are loaded into the database with a COPY command.</p></li>
+</ol>
+
+<h4>Input to a tsv_extractor</h4>
+
+<p>The <code>input</code> to a <code>tsv_extractor</code> must be a database query. For example</p>
+<div class="highlight"><pre><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">title_id</span><span class="p">,</span> <span class="n">title</span> <span class="k">FROM</span> <span class="n">title</span><span class="p">;</span>
+</code></pre></div>
+<p>The order of the columns in the query imposes the order of the columns in the
+TSV file given in input to the UDF. For the query example above, each line will
+contain first the <code>title_id</code> and then <code>title</code>.</p>
+
+<h4>Arrays in input or output</h4>
+
+<p>If the output of the input query contains arrays, it will be hard to parse the
+reuslting <code>TSV</code> files will be hard to parse. In this case it is recommended to
+use the <code>array_to_string</code> function to process the array in the input query, and
+then parse the string in UDF.</p>
+
+<p>For example, for an input query like this:</p>
+<div class="highlight"><pre><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">words_id</span><span class="p">,</span> <span class="n">array_to_string</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="s1">&#39;$$$&#39;</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">words_table</span><span class="p">;</span>
+</code></pre></div>
+<p>You can parse each line with following:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">words_id</span><span class="p">,</span> <span class="n">words_str</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">)</span>
+<span class="n">words</span> <span class="o">=</span> <span class="n">words_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;$$$&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+  <span class="c"># process each word...</span>
+</code></pre></div>
+<p>Note that if the output of the UDF contains arrays, the database system may have
+an hard time parsing it. You should either make sure that the value can
+be parsed by
+the psql-COPY command, or try other types of extractors.</p>
+
+<h4>Writing UDF a <code>tsv_extractor</code></h4>
+
+<p>When an <code>tsv_extractor</code> is executed, DeepDive streams plaintext lines with
+fields separated by <code>\t</code> from the input query to the UDF standard input, one
+tuple per line. Such a line may look as follows:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">&quot;5\tI am a title&quot;
+</code></pre></div>
+<p>The extractor should output TSV lines in the same fashion. All
+output tuples must have the same fields. Empty fields can set to <code>&quot;\N&quot;</code>, which
+is be parsed as <code>null</code> by the database COPY command:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">&quot;5\tI&quot;
+&quot;5\tam&quot;
+&quot;5\ta&quot;
+&quot;5\ttitle&quot;
+&quot;6\t\N&quot;  # example of returning a NULL value
+</code></pre></div>
+<p>You can debug the extractor UDF by writing to <code>stderr</code> instead of <code>stdout</code>.
+Anything written to <code>stderr</code> appears in the DeepDive log file.</p>
+
+<p>The following is an example of a <code>tsv_extractor</code> UDF written in Python:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#! /usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">fileinput</span>
+
+<span class="c"># For each input row</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fileinput</span><span class="o">.</span><span class="n">input</span><span class="p">():</span>
+  <span class="n">title_id</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="c"># Split the sentence by space</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&quot;title&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)):</span>
+      <span class="c"># Output the word</span>
+      <span class="k">print</span> <span class="n">title_id</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">word</span>
+</code></pre></div>
+<h3><a name="plpy_extractor" href="#"></a> plpy_extractor</h3>
+
+<p>A <code>plpy_extractor</code> is a high-performance type of extractors for PostgreSQL /
+Greenplum databases. It avoids additional I/O by executing the extractor
+<strong>inside</strong> the database system in parallel. It translates an UDF written by the
+user in Python into a
+<a href="http://www.postgresql.org/docs/current/static/plpython.html">PL/python</a> program
+accepted by PostgreSQL.</p>
+
+<p>To use a <code>plpy_extractor</code>, make sure PL/Python is enabled on your database
+server.</p>
+
+<p>Similar as <code>tsv_extractor</code>, the UDF takes data defined by an <code>input</code>
+SQL statement, and produces new tuples as output. These tuples are written to
+the <code>output_relation</code>. The UDF for this transformation, defined by the <code>udf</code>
+key, <strong>must</strong> be a Python script with a specific format (more on
+this later). The following is an example of a <code>plpy_extractor</code> definition:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># An extractor to get trigrams of words from sentences to word_3gram table</span>
+ngramExtractor <span class="o">{</span>
+  style           : <span class="s2">&quot;plpy_extractor&quot;</span>
+  input           : <span class="s2">&quot;&quot;&quot;SELECT sentence_id, words, 3 as gram_len FROM sentences&quot;&quot;&quot;</span>
+  output_relation : <span class="s2">&quot;word_3gram&quot;</span>
+  udf             : <span class="s2">&quot;ext_word_ngram.py&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Next we explain how to write the UDF for a <code>plpy_extractor</code>. </p>
+
+<p>Since it will be translated into PL/Python by translator in
+DeepDive, the UDF script of a <code>plpy_extractor</code> <strong>must</strong> follow a specific
+structure:</p>
+
+<ul>
+<li><p>It must contain only two functions: <code>init</code> and <code>run</code>. Anything outside the <code>init</code> and <code>run</code> functions will be ignored by the translator.</p></li>
+<li><p>In the <code>init</code> function, you should import libraries, and specify the input variables and return types. We will see detailed specifications later.</p></li>
+<li><p>The <code>run</code> function is your extractor function that takes one row in
+the <code>input</code> SQL query, and returns a list of tuples.</p></li>
+</ul>
+
+<h4>plpy UDF: <em>init</em> function specification</h4>
+
+<!-- We need to make sure it works when changing indentation structures! -->
+
+<ol>
+<li><p>You can <strong>import libraries</strong> used by the UDF by calling the function
+<code>ddext.import_lib</code>. The signature of the function is: <code>def import_lib(libname,
+from_package=None, as_name=None)</code> and corresponds, in standard Python syntax,
+to <code>from from_package import libname as as_name</code>. A sample usage is the
+following:</p>
+
+<ul>
+<li><code>ddext.import_lib(X, Y, Z)</code>: from Z import X as Y</li>
+<li><code>ddext.import_lib(X, Y)</code>: from Y import X</li>
+<li><code>ddext.import_lib(X, as_name=Z)</code>: import X as Z</li>
+<li><code>ddext.import_lib(X)</code>: import X</li>
+</ul></li>
+<li><p>The <strong>input variables</strong> to the UDF must be explicitly specified with
+<code>ddext.input</code>. You must specify both variable <strong>names</strong> and <strong>types</strong>. The
+function is defined as: <code>def input(name, datatype)</code>. A sample usage is:</p>
+
+<ul>
+<li><code>ddext.input(&#39;sentence_id&#39;, &#39;bigint&#39;)</code> specifies an input to UDF with
+name &quot;sentence_id&quot; and type &quot;bigint&quot;.</li>
+<li>Caveats:
+
+<ul>
+<li><strong>Input variable names must be the same as in the SQL input query
+(aliased), and the types must match.</strong></li>
+<li>Names should be coherent to the argument list of <code>run</code> function (see
+below).</li>
+<li>Types are PostgreSQL types, e.g., <code>int</code>, <code>bigint</code>, <code>text</code>, <code>float</code>,
+<code>int[]</code>, <code>bigint[]</code>, <code>text[]</code>, <code>float[]</code>, etc.</li>
+</ul></li>
+</ul></li>
+<li><p>The <strong>return types and names</strong> must be explicitly specified with
+<code>ddext.returns</code>. This function is defined as: <code>def returns(name, datatype)</code>. A
+sample usage is:</p>
+
+<ul>
+<li><code>ddext.returns(&#39;sentence_id&#39;, &#39;bigint&#39;)</code> specifies an output from
+UDF with name &quot;sentence_id&quot; and type &quot;bigint&quot;.</li>
+<li>Caveats:
+
+<ul>
+<li>Types are PostgreSQL types as above.</li>
+<li><strong>Names and types</strong> of return variables must <strong>exactly match</strong>
+some columns of the extractors <code>output_relation</code>. If the output
+relation contains more columns, the values of the tuples in the
+unspecified columns will be NULL.</li>
+</ul></li>
+</ul></li>
+</ol>
+
+<h4>plpy UDF: <em>run</em> function specification</h4>
+
+<p>The <code>run</code> function is your extractor function that takes one row in
+the <code>input</code> SQL query, and returns a list of tuples. Use Python as you
+normally would, except for the following caveats:</p>
+
+<ul>
+<li><p><code>print</code> is NOT supported. If you want to print to the DeepDive log
+file, use <code>plpy.info(&#39;SOME TEXT&#39;)</code> or <code>plpy.debug(&#39;SOME TEXT&#39;)</code>.</p></li>
+<li><p>You can not <strong>reassign input variables</strong> in the <code>run</code> function! </p>
+
+<ul>
+<li>e.g., &quot;input_var = x&quot; is invalid and will cause error!</li>
+</ul></li>
+<li><p>Libraries imported in the <code>init</code> function can be used in <code>run</code>. e.g., if you have <code>ddext.import_lib(&#39;re&#39;)</code> in <code>init</code>, you can call
+the function <code>re.sub</code> in <code>run</code>.</p></li>
+</ul>
+
+<p>The function <code>run</code> can either return a list of tuples:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">return</span> <span class="p">[(</span><span class="n">sentence_id</span><span class="p">,</span> <span class="n">gram</span><span class="p">,</span> <span class="n">ngram</span><span class="p">[</span><span class="n">gram</span><span class="p">])</span> <span class="k">for</span> <span class="n">gram</span> <span class="ow">in</span> <span class="n">ngram</span><span class="p">]</span>
+</code></pre></div>
+<p>or <code>yield</code> a tuple multiple times. Each tuple it yields will be inserted into
+the database, just like each printed JSON object in a json_extractor. Each
+yielded/returned tuple can be either:</p>
+
+<ul>
+<li><p>an ordered list / tuple according to the order of <code>ddext.return</code> specification: </p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">yield</span> <span class="n">sentence_id</span><span class="p">,</span> <span class="n">gram</span><span class="p">,</span> <span class="n">ngram</span><span class="p">[</span><span class="n">gram</span><span class="p">]</span>
+</code></pre></div></li>
+<li><p>a Python <code>dict</code>:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">yield</span> <span class="p">{</span>
+    <span class="s">&#39;sentence_id&#39;</span><span class="p">:</span> <span class="n">sentence_id</span><span class="p">,</span> 
+    <span class="s">&#39;ngram&#39;</span><span class="p">:</span> <span class="n">ngram</span><span class="p">,</span> 
+    <span class="s">&#39;count&#39;</span><span class="p">:</span><span class="n">ngram</span><span class="p">[</span><span class="n">gram</span><span class="p">]</span>
+  <span class="p">}</span><span class="sb">``</span><span class="err">`</span>
+</code></pre></div></li>
+</ul>
+
+<p>If you want to use functions other than <code>init</code> and <code>run</code>, you <strong>must</strong>
+define the functions inside <code>run</code>as nested functions. In the following
+example, the <code>get_ngram</code> function is nested inside <code>run</code>:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">sentence_id</span><span class="p">,</span> <span class="n">words</span><span class="p">):</span>
+  <span class="n">ngram</span> <span class="o">=</span> <span class="p">{}</span>
+
+  <span class="c"># Count Ngrams of words; N as input</span>
+  <span class="c"># words / ngram is accessible in the function</span>
+  <span class="k">def</span> <span class="nf">get_ngram</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span><span class="p">):</span>
+      <span class="n">gram</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">N</span><span class="p">])</span>
+
+      <span class="k">if</span> <span class="n">gram</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ngram</span><span class="p">:</span> 
+        <span class="n">ngram</span><span class="p">[</span><span class="n">gram</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="n">ngram</span><span class="p">[</span><span class="n">gram</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+  <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+    <span class="n">get_ngram</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="p">[(</span><span class="n">sentence_id</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">ngram</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ngram</span><span class="p">]</span>
+</code></pre></div>
+<p>You can debug <code>plpy_extractors</code>using <em>plpy.info</em> or <em>plpy.debug</em>
+instead of <em>print</em>. The output will appear in the DeepDive log file.</p>
+
+<p>As an example, the following is the <code>ext_word_ngram.py</code> script used by the
+extractor <code>ngramExtractor</code> defined above:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#! /usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">ddext</span>
+
+<span class="k">def</span> <span class="nf">init</span><span class="p">():</span>
+  <span class="n">ddext</span><span class="o">.</span><span class="n">input</span><span class="p">(</span><span class="s">&#39;sentence_id&#39;</span><span class="p">,</span> <span class="s">&#39;bigint&#39;</span><span class="p">)</span>
+  <span class="n">ddext</span><span class="o">.</span><span class="n">input</span><span class="p">(</span><span class="s">&#39;words&#39;</span><span class="p">,</span> <span class="s">&#39;text[]&#39;</span><span class="p">)</span>
+  <span class="n">ddext</span><span class="o">.</span><span class="n">input</span><span class="p">(</span><span class="s">&#39;gram_len&#39;</span><span class="p">,</span> <span class="s">&#39;int&#39;</span><span class="p">)</span>
+
+  <span class="n">ddext</span><span class="o">.</span><span class="n">returns</span><span class="p">(</span><span class="s">&#39;sentence_id&#39;</span><span class="p">,</span> <span class="s">&#39;bigint&#39;</span><span class="p">)</span>
+  <span class="n">ddext</span><span class="o">.</span><span class="n">returns</span><span class="p">(</span><span class="s">&#39;ngram&#39;</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">)</span>
+  <span class="n">ddext</span><span class="o">.</span><span class="n">returns</span><span class="p">(</span><span class="s">&#39;count&#39;</span><span class="p">,</span> <span class="s">&#39;int&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">sentence_id</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">gram_len</span><span class="p">):</span>
+  <span class="c"># Count Ngrams of words in the sentence</span>
+  <span class="n">ngram</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">-</span> <span class="n">gram_len</span><span class="p">):</span>
+    <span class="n">gram</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">gram_len</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">gram</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ngram</span><span class="p">:</span> 
+      <span class="n">ngram</span><span class="p">[</span><span class="n">gram</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ngram</span><span class="p">[</span><span class="n">gram</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+  <span class="k">for</span> <span class="n">gram</span> <span class="ow">in</span> <span class="n">ngram</span><span class="p">:</span>
+    <span class="c"># Yield an ordered tuple/list:</span>
+    <span class="k">yield</span> <span class="p">(</span><span class="n">sentence_id</span><span class="p">,</span> <span class="n">gram</span><span class="p">,</span> <span class="n">ngram</span><span class="p">[</span><span class="n">gram</span><span class="p">])</span>
+
+    <span class="c"># Or yield a (unordered) dict:</span>
+    <span class="c"># yield {</span>
+    <span class="c">#     &#39;sentence_id&#39;: sentence_id, </span>
+    <span class="c">#     &#39;ngram&#39;: ngram, </span>
+    <span class="c">#     &#39;count&#39;:ngram[gram]</span>
+    <span class="c">#   }</span>
+
+  <span class="c"># # Or return a list at once:</span>
+  <span class="c"># return [[sentence_id, gram, ngram[ngram]] for gram in ngram] </span>
+</code></pre></div>
+<h3><a id="sql_extractor" href="#"></a> sql_extractor</h3>
+
+<p>The <code>sql_extractor</code> style is a meant to simplify the life of the user.
+Extractors with this style only update the data in database (without returnining
+anything). The following is an example of a <code>sql_extractor</code> definition:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">wordsExtractor <span class="o">{</span>
+  style : <span class="s2">&quot;sql_extractor&quot;</span>
+  sql   : <span class="s2">&quot;&quot;&quot;INSERT INTO titles VALUES (1, &#39;Moby Dick&#39;)&quot;&quot;&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>The <code>sql</code> field contains the SQL query to execute. It is the user&#39;s
+responsibility to run <code>ANALYZE table_name</code> after updating the table for SQL
+optimization.</p>
+
+<h3><a id="cmd_extractor" href="#"></a> cmd_extractor</h3>
+
+<p>The <code>cmd_extractor</code> style allows the user to run a shell command. The following
+is an example of a <code>cmd_extractor</code> definition:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">wordsExtractor <span class="o">{</span>
+  style : <span class="s2">&quot;cmd_extractor&quot;</span>
+  cmd   : <span class="s2">&quot;&quot;&quot;python words.py&quot;&quot;&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>The <code>cmd</code> field contains the shell command to execute.</p>
+
+<h2>Additional extractor properties</h2>
+
+<p>The following are additional properties of extractors that you can specify in
+the application configuration file.</p>
+
+<h3><a name="dependencies" href="#"></a> Dependencies</h3>
+
+<p>You can specify dependencies for an extractor. Extractors will be executed
+in order of their dependencies. If the dependencies of several extractors are
+satisfied at the same time, these may be executed in parallel, or in any order.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">wordsExtractor <span class="o">{</span>
+  dependencies: <span class="o">[</span><span class="s2">&quot;anotherExtractorName&quot;</span><span class="o">]</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>If an extractor specified in dependencies does not exist or is not in the
+active <a href="running.html#pipelines">pipeline</a>, that extractor will be ignored. </p>
+
+<h3><a name="parallelism" href="#"></a> Parallelism</h3>
+
+<p>You can execute multiple independent extractors in parallel by setting
+<code>extractor.parallelism</code> to the desired level of parallelism:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  extraction.parallelism: 5 
+<span class="o">}</span>
+</code></pre></div>
+<h3><a name="beforeandafter" href="#"></a> Before and After scripts</h3>
+
+<p>Sometimes it is useful to execute a command before an extractor starts or after
+an extractor finishes. You can specify arbitrary commands to be executed as
+follows:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">wordsExtractor <span class="o">{</span>
+  before : <span class="s2">&quot;&quot;&quot;echo Hello World&quot;&quot;&quot;</span>
+  after  : <span class="s2">&quot;&quot;&quot;/path/to/my/script.sh&quot;&quot;&quot;</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div>
+<h3><a name="jsonparallelism" href="#"></a> <code>json_extractor</code> parallelism and input batch size</h3>
+
+<p><em>Note</em>: This section applies <strong>only</strong> to extractors with style <code>json_extractor</code>.</p>
+
+<p>To improve the performances, you can specify the number <code>N</code> of processes and the
+input batch size for each extractor. Your executable script will be run on <code>N</code>
+threads in parallel and data will be streamed to these processes in a
+round-robin fashion. By default each extractor uses 1 process and a batch size
+of 1000.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">wordsExtractor <span class="o">{</span>
+  <span class="c"># Start 5 processes for this extractor</span>
+  parallelism: 5
+  <span class="c"># Stream 1000 tuples to each process in a round-robin fashion</span>
+  input_batch_size: 1000
+<span class="o">}</span>
+</code></pre></div>
+<p>To improve the performances in writing extracted data back to the database you
+can optionally specify an <code>output_batch_size</code> for each extractor. The output
+batch size specifies how many extracted tuples we insert into the database at
+once.  For example, if your tuples are very large, a smaller batch size may help
+avoid out-of-memory errors. The default value is 10,000.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">wordsExtractor <span class="o">{</span>
+  <span class="c"># Insert 5000 tuples at a time into the data store</span>
+  output_batch_size: 5000
+<span class="o">}</span>
+</code></pre></div>
+<p><a id="debug_extractors" href="#"> </a></p>
+
+<h3>Debugging Extractors</h3>
+
+<p>This section describes several ways to debug different extractors.</p>
+
+<h4>Print to logs</h4>
+
+<p>In <code>json_extractor</code> (default) and <code>tsv_extractor</code>, if you print to <em>stderr</em>
+instead of <em>stdout</em>, the messages will appear in the log file as well as in the console.</p>
+
+<p>In <code>plpy_extractor</code>, you should use <em>plpy.debug</em> or <em>plpy.info</em> to print to console and log file.</p>
+
+<h4>Getting example inputs</h4>
+
+<p>&quot;What do my extractor inputs look like?&quot; Developers might find it helpful to
+print input to extractors to some temporary files. DeepDive provides a simple
+utility script for this task, in
+<code>$DEEPDIVE_HOME/util/extractor_input_writer.py</code>, to debug <code>json_extractor</code> and <code>tsv_extractor</code> (not applicable to <code>plpy_extractor</code>). </p>
+
+<p>The script is very simple:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#! /usr/bin/env python</span>
+<span class="c"># File: deepdive/util/extractor_input_writer.py</span>
+
+<span class="c"># Simply printing input lines to a file, specified by a command line argument.</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Usage:&quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">&quot;SAMPLE_FILE_PATH&quot;</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">fout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Writing extractor input to file:&quot;</span><span class="p">,</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">:</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">fout</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+<span class="n">fout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+<p>This script takes one command line argument, the file output path. It will simply
+output whatever it receives as input from STDIN to the file.</p>
+
+<p>Developers can change the extractor UDF to <code>util/extractor_input_writer.py
+SAMPLE_FILE_PATH</code> to obtain sample extractor inputs in the file <code>SAMPLE_FILE_PATH</code>.</p>
+
+<p>For example, in our <a href="walkthrough/walkthrough.html">walkthrough</a>, to debug the extractor <code>ext_has_spouse_features</code>, just change
+<code>application.conf</code> to:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">ext_has_spouse_features <span class="o">{</span>
+  <span class="c"># Added &quot;ORDER BY&quot; and &quot;LIMIT&quot; to randomly sample a small amount of data</span>
+  input: <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    SELECT  sentences.words,</span>
+<span class="s2">            has_spouse.relation_id, </span>
+<span class="s2">            p1.start_position AS p1_start,</span>
+<span class="s2">            p1.length AS p1_length,</span>
+<span class="s2">            p2.start_position AS p2_start,</span>
+<span class="s2">            p2.length AS p2_length</span>
+<span class="s2">      FROM  has_spouse, </span>
+<span class="s2">            people_mentions p1, </span>
+<span class="s2">            people_mentions p2, </span>
+<span class="s2">            sentences</span>
+<span class="s2">     WHERE  has_spouse.person1_id = p1.mention_id </span>
+<span class="s2">       AND  has_spouse.person2_id = p2.mention_id </span>
+<span class="s2">       AND  has_spouse.sentence_id = sentences.sentence_id</span>
+<span class="s2">       ORDER BY RANDOM() LIMIT 100</span>
+<span class="s2">       &quot;&quot;&quot;</span>
+  output_relation : <span class="s2">&quot;has_spouse_features&quot;</span>
+  <span class="c"># udf: ${APP_HOME}&quot;/udf/ext_has_spouse_features.py&quot;     # Comment it out</span>
+
+  <span class="c"># Change UDF to the utility file; save outputs to &quot;/tmp/dd-sample-features.txt&quot;.</span>
+  <span class="c"># &quot;util&quot; folder is under DEEPDIVE_HOME.</span>
+  udf: util/extractor_input_writer.py /tmp/dd-sample-features.txt
+
+  before          : <span class="k">${</span><span class="nv">APP_HOME</span><span class="k">}</span><span class="s2">&quot;/udf/clear_table.sh has_spouse_features&quot;</span>
+  dependencies    : <span class="o">[</span><span class="s2">&quot;ext_has_spouse_candidates&quot;</span><span class="o">]</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>After running the system with <code>run.sh</code>, the file <code>/tmp/dd-sample-features.txt</code>
+look like:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">{&quot;p2_length&quot;:2,&quot;p1_length&quot;:2,&quot;words&quot;:[&quot;The&quot;,&quot;strange&quot;,&quot;case&quot;,&quot;of&quot;,&quot;the&quot;,&quot;death&quot;,&quot;of&quot;,&quot;&#39;50s&quot;,&quot;TV&quot;,&quot;Superman&quot;,&quot;George&quot;,&quot;Reeves&quot;,&quot;is&quot;,&quot;deconstructed&quot;,&quot;in&quot;,&quot;``&quot;,&quot;Hollywoodland&quot;,&quot;,&quot;,&quot;&#39;&#39;&quot;,&quot;starring&quot;,&quot;Adrien&quot;,&quot;Brody&quot;,&quot;,&quot;,&quot;Diane&quot;,&quot;Lane&quot;,&quot;,&quot;,&quot;Ben&quot;,&quot;Affleck&quot;,&quot;and&quot;,&quot;Bob&quot;,&quot;Hoskins&quot;,&quot;.&quot;],&quot;relation_id&quot;:12190,&quot;p1_start&quot;:20,&quot;p2_start&quot;:10}
+{&quot;p2_length&quot;:2,&quot;p1_length&quot;:2,&quot;words&quot;:[&quot;Political&quot;,&quot;coverage&quot;,&quot;has&quot;,&quot;not&quot;,&quot;been&quot;,&quot;the&quot;,&quot;same&quot;,&quot;since&quot;,&quot;The&quot;,&quot;National&quot;,&quot;Enquirer&quot;,&quot;published&quot;,&quot;photographs&quot;,&quot;of&quot;,&quot;Donna&quot;,&quot;Rice&quot;,&quot;in&quot;,&quot;the&quot;,&quot;former&quot;,&quot;Sen.&quot;,&quot;Gary&quot;,&quot;Hart&quot;,&quot;&#39;s&quot;,&quot;lap&quot;,&quot;20&quot;,&quot;years&quot;,&quot;ago&quot;,&quot;.&quot;],&quot;relation_id&quot;:34885,&quot;p1_start&quot;:14,&quot;p2_start&quot;:20}
+...
+</code></pre></div>
+<p>We see that each line contains a JSON object. You can even also use this file to
+test your extractor UDF by running commands like :</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">python udf/ext_has_spouse_features.py &lt; /tmp/dd-sample-features.txt
+</code></pre></div>
+            </div>
+          </row>
+        </div>
+      </section>
+    
+      <footer id="footer">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <p class="pull-left"> 
+                Copyright, 2014 deepdive.stanford.edu
+                ⋅
+                <a href="mailto:contact.hazy@gmail.com">Questions? Email us</a>
+              </p>
+              <p class="pull-right"> 
+                Visit DeepDive on <a href="https://github.com/hazyresearch/deepdive" target="_blank">Github</a> 
+              </p>
+            </div>
+          </row>
+        </div>
+      </footer>
+
+    
+  
+  </body>
+</html>

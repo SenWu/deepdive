@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,55 +46,65 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Using PostgreSQL with DeepDive</h1>
+              <h1>Performance Tuning</h1>
 
-<p>When using <a href="postgresql.org">PostgreSQL</a> with DeepDive there are several things to pay attention to.</p>
+<p>Processing large amounts of data may expose bottlenecks in various parts of the
+system. The following sections show how to tune different parameters to obtain
+better performances.</p>
 
-<h3>Preparing the data</h3>
+<h3><a name="parallelgrounding" href="#"></a> Parallel grounding</h3>
 
-<p>DeepDive assumes that you have created the schema for your application in the database. This means, all relations used by any of your extractors and inference rules must exist before running DeepDive. We recommend doing this in a data preparation script, as shown in the <a href="example.html">example walkthrough</a>. When designing your schema, <strong>all relation must have a unique primary key callled <code>id</code></strong>. </p>
-
-<h3>Connection Information</h3>
-
-<p>You define the connection string to your PostgreSQL instance in your application configuration in <a href="http://jdbc.postgresql.org/documentation/80/connect.html">JDBC format</a>. You can optionally specify a username and password for your connection.</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">deepdive: {
-  db.default {
-    driver   : &quot;org.postgresql.Driver&quot;
-    url      : &quot;jdbc:postgresql://[host]:[port]/[database_name]&quot;
-    user     : &quot;deepdive&quot;
-    password : &quot;&quot;
-    dbname   : [database_name]
-    host     : [host]
-    port     : [port]
-
-  }
+<p><a href="../basics/overview.html#grounding">Grounding</a> is the process of building the
+factor graph. If you are using Greenplum, you can enable parallel grounding to
+speed up the grounding phase, which makes use of Greenplum&#39;s parallel file
+system (gpfdist). To use parallel grounding, first make sure that Greenplum&#39;s file
+system server <code>gpfdist</code> is running locally, i.e., on the machine where you will
+run the DeepDive applications. If it is not running, you can use the following
+command to start gpfdist</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">gpfdist -d [directory] -p [port] &amp;
+</code></pre></div>
+<p>where you specify the directory for storing the files and the HTTP port to run on.
+Then, in <code>application.conf</code>, specify the gpfdist settings in the <code>db.default</code> as
+follows</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">db.default {
+  gphost   : [host of gpfdist]
+  gpport   : [port of gpfdist]
+  gppath   : [path to gpfdist directory]
 }
 </code></pre></div>
-<p>For advanced connection pool options refer to the <a href="http://scalikejdbc.org/documentation/configuration.html">Scalikejdbc configuration</a>.</p>
-
-<h3>Attribute naming conventions in extractors</h3>
-
-<ul>
-<li>Attributes are always prefixed with the name of the relation. For example, if your query includes a <code>name</code> column from the <code>people</code> table, then the corresponding JSON key would be called <code>people.name</code>. This also applies to aliases. For example, <code>SELECT people.name AS text</code> would result in a JSON key called <code>people.text</code>.</li>
-<li>Aggregates are prepended with a dot and don&#39;t have include the relation name. For example <code>SELECT COUNT(*) AS num FROM people GROUP BY people.name</code> would result in a JSON key called <code>.num</code>.</li>
-<li>When outputting tuples in your extractor, only use the column name of the target relation, without the relation name. In other words, don&#39;t have a JSON key called <code>people.name</code>, but a key called <code>name</code>.</li>
-</ul>
-
-<h3>Attribute naming conventions in inference rules and input queries</h3>
-
-<ul>
-<li>In factor rules, always use <code>[relation_name].[attribute]</code> for your variables, regardless whether or not you are using an alias in your input query. For example, even if you write <code>SELECT p1.is_male from people p1</code> your variable would be called <code>people.is_male</code>.</li>
-</ul>
-
-<h3>Using self-joins in inference rule input queries</h3>
-
-<p>When using self-joins, you must avoid naming collisions by defining an alias in your query. For example, the following will <strong>NOT WORK</strong>:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">SELECT p1.name, p1.id, p2.name, p2.id FROM people p1 LEFT JOIN people p2 ON p1.manager_id = p2.id
+<p>Finally, tell DeepDive to use parallel grounding by adding the following to
+<code>application.conf</code>: </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">inference.parallel_grounding: true
 </code></pre></div>
-<p>Instead, you must write:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">SELECT p1.name AS &quot;p1.name&quot;, p1.id AS &quot;p1.id&quot;, p2.name AS &quot;p2.name&quot;, p2.id AS &quot;p2.id&quot; FROM people p1 LEFT JOIN people p2 ON p1.manager_id = p2.id
-</code></pre></div>
-<p>And your factor function variables would be called <code>people.p1.name</code> and <code>people.p2.name</code>.</p>
+<h3>Setting the JVM heap size</h3>
+
+<p>Use the <code>-Xmx</code> flag to the <code>java</code> command to set the maximum heap size for the
+Java Virtual Machine. The default heap size is the minimum between one quarter of
+the physical memory and 1GB. If you use <a href="http://www.scala-sbt.org/">SBT</a> to run
+a DeepDive application , you can set the heap size as follows:
+<code>bash
+    SBT_OPTS=&quot;-Xmx8g&quot; sbt &quot;run -c path_to_application.conf&quot;
+</code></p>
+
+<h3>Setting extractor parallelism and batch sizes</h3>
+
+<p>For <code>json_extracor</code> and <code>tsv_extractor</code>, you can execute multiple copies of an extractor in parallel using the
+<code>paralleism</code> option. In <code>plpy_extractor</code> the parallelism is managed by database.</p>
+
+<p>For <code>json_extracor</code> and <code>tsv_extractor</code>, you can use the <code>input_batch_size</code> option to define how
+many tuples each extractor should receive at once, and the <code>output_batch_size</code>
+option to define how many extracted tuples should be inserted into the data
+store at once. The <a href="../basics/extractors.html#jsonparallelism">extractor
+documentation</a> contains more details about
+these options. </p>
+
+<h3>Setting the batch size for factor graph construction</h3>
+
+<p>By default, DeepDive inserts variables, factors and weights in batches defined
+by the underlying data store. This can be change by defining a value for the
+<code>inference.batch_size</code> directive. Refer to the <a href="../basics/configuration.html#batch_size">&quot;Configuration
+reference&quot;</a> for more details about this
+directive.</p>
 
             </div>
           </row>

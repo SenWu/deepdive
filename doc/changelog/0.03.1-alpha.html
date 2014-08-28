@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,28 +46,19 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Using DeepDive on EC2</h1>
-
-<p>We provide pre-configured <a href="http://aws.amazon.com/ec2/">Amazon EC2</a> AMI that comes with DeepDive. The AMI uses the Amazon Linux distribution.</p>
-
-<h3>Using the AMI</h3>
-
-<p>In the Amazon EC2 console you can launch the AMI as follows:</p>
+              <h1>Changelog for version 0.0.3.1-alpha (08/15/2014)</h1>
 
 <ul>
-<li>Choose the &quot;US-East&quot; region (top right menu)</li>
-<li>Click on &quot;Launch Instance&quot;, choose &quot;Community AMIs&quot; and search for &quot;DeepDive&quot; (AMI id: ami-8a5fbce2). Choose the AMI image.</li>
-<li>In the next step, pick the instance type. The <code>m1.large</code> instance type is fine for testing-purposes. We recommend using the compute- or memory-optimized instances (depending on your use case) for production purposes.</li>
-<li>Follow the wizard to launch the instance.</li>
-<li>SSH into the instance as <code>ec2-user</code> with the private key set you specified in the AWS wizard.</li>
-<li>Execute <code>~/init.sh</code> to start postgresql and update DeepDive.</li>
-<li>Navigate to <code>~/deepdive</code> and execute <code>./test.sh</code> to make sure the installation was successful.</li>
-</ul>
-
-<h3>Notes</h3>
-
-<ul>
-<li>For improved I/O performance the postgresql data directory is created on the Amazon instance store in <code>/media/ephemeral0</code>. This means that if you shut down your instance, all postgresql data will be lost. Make sure to backup your data or store in on the EBS volume if you want to keep it.</li>
+<li>Add support and documentation for <a href="../basics/schema.html#multinomial">multinomial variables and multinomial
+factor function</a>.</li>
+<li>Add <a href="../basics/chunking.html">text chunking example</a> to show how to use
+multinomial random variables.</li>
+<li>Add support for array type variables.</li>
+<li>Add support for <a href="../advanced/performance.html#grounding">parallel factor graph
+grounding</a>.</li>
+<li>Update <a href="../basics/overview.html#grounding">grounding</a>: all grounding/dumping
+is now done in the database instead of having data going through Scala code.</li>
+<li>Add support for faster data unloading (e.g. unloading grounding tables to file).</li>
 </ul>
 
             </div>

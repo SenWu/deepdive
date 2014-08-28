@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,24 +46,59 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Defining Schema</h1>
+              <h1>Inference Rule Function Reference</h1>
 
-<h3>Defining variable attributes</h3>
+<p>This document lists and describes all functions that can be used in the
+<code>function</code> directive when <a href="inference_rules.html">writing inference rules</a>.</p>
 
-<p>You must tell DeepDive which variables you want to use in your inference rules. Each variable has a data type associated with it. Currently, DeepDive only supports <em>Boolean</em> variables.</p>
+<h3>Variable Negation</h3>
 
-<div class="highlight"><pre><code class="bash">deepdive <span class="o">{</span>
-  schema.variables <span class="o">{</span>
-    people.smokes: Boolean
-    people.has_cancer: Boolean
-  <span class="o">}</span>
-<span class="o">}</span></code></pre></div>
+<p>Variables can be negated by prefixing them with a <code>!</code>, as in <code>Or(A,!B)</code>. </p>
 
-<p>In the above example <em>smokes</em> and <em>has_cancer</em> are boolean attributes in the <em>people</em> table. DeepDive will assign a unique variable <code>id</code> to each entry in the <em>smokes</em> and <em>has_cancer</em> column. This variable <code>id</code> is used during probabilistic inference. Developers should create the variable table such as <em>people</em> with the column <code>id</code>; if <a href="extractors.html">extractors</a> output to the variable table, fill <code>id</code> column with <code>NULL</code> values as extractor output. <a href="inference_rules.html">See more in the inference guide</a>.</p>
+<h3>Imply function</h3>
+<div class="highlight"><pre><code class="language-text" data-lang="text"># B and C and D =&gt; A
+Imply(B,C,D,A)
+</code></pre></div>
+<p>The <em>Imply</em> function describes a logical consequence. The last variable is the
+head. The variables in the body (<code>B,C,D</code>) are combined using a conjunction
+(logical AND (<a href="http://en.wikipedia.org/wiki/Truth_table#Logical_implication">truth
+table</a>)). </p>
 
-<h3>Evidence and Query variables</h3>
+<h3>Or function</h3>
+<div class="highlight"><pre><code class="language-text" data-lang="text"># A or B or C
+Or(A,B,C)
+</code></pre></div>
+<p>The <em>Or</em> function combines all variables using a logical disjunction (<a href="http://en.wikipedia.org/wiki/Truth_table#Logical_disjunction">truth
+table</a>).</p>
 
-<p>Evidence is training data that is used to automatically learn <a href="inference_rules.html">factor weights</a>. DeepDive will treat variables with existing values as evidence. In the above example, rows in the <em>people</em> table with a <code>true</code> or <code>false</code> value in the <em>smokes</em> or <em>has_cancer</em> column will be treated as evidence for that variable. Cells without a value (NULL) value will be treated as query variables.</p>
+<h3>And function</h3>
+<div class="highlight"><pre><code class="language-text" data-lang="text"># A and B and C
+And(A,B,C)
+</code></pre></div>
+<p>The <em>And</em> function combines all variables using a logical conjunction (<a href="http://en.wikipedia.org/wiki/Truth_table#Logical_conjunction">truth
+table</a>).</p>
+
+<h3>Equal function</h3>
+<div class="highlight"><pre><code class="language-text" data-lang="text"># A &lt;=&gt; B
+Equal(A,B)
+</code></pre></div>
+<p>The <em>Equal</em> function is restricted to two variables and evaluates to true if and
+only if both variables have the same value (<a href="http://en.wikipedia.org/wiki/Truth_table#Logical_equality">truth
+table</a>).</p>
+
+<h3>IsTrue function</h3>
+<div class="highlight"><pre><code class="language-text" data-lang="text">IsTrue(A)  
+</code></pre></div>
+<p>The <em>IsTrue</em> function evaluates to true if and only if its variable evaluates to
+true. It is restricted to one variable. One may implement a <em>Not</em> function using
+<code>IsTrue(!A)</code>.</p>
+
+<h3>Multinomial function</h3>
+<div class="highlight"><pre><code class="language-text" data-lang="text">Multinomial(A == a,B,C)
+</code></pre></div>
+<p>The <em>Multinomial</em> function allows multinomial variables as arguments, and 
+it evaluates to true if and only if its variables have the same value as input (e.g.,
+ a for A).</p>
 
             </div>
           </row>

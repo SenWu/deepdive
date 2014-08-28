@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,51 +46,55 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Table names reserved by DeepDive</h1>
+              <h1>Factor Graph Grounding Output Schema Reference</h1>
 
-<p>The following tables are used internally by DeepDive. You cannot create tables with the same name in the database:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">                            List of relations
- Schema |                     Name                     |   Type   
---------+----------------------------------------------+----------
- public | dd_graph_variables_holdout                   | table    
- public | dd_graph_weights                             | table    
- public | dd_graph_weights_id_seq                      | sequence 
- public | dd_inference_result_variables                | table    
- public | dd_inference_result_variables_mapped_weights | view     
- public | dd_inference_result_weights                  | table    
- public | f_[YOUR_RULE_NAME]_query_user                | view     
+<p><a href="../basics/overview.html#grounding">Grounding</a> is the process of building the
+factor graph and dumping it to files that the <a href="../basics/sampler.html">sampler</a>
+can take as input. DeepDive uses a custom binary format to encode the factor
+graph. It generates four files, one each for weights, variables, factors, and
+edges. All files resides in the <code>out/</code> directory of the latest run. The format
+of these files is as follows, where numbers are in bytes and <strong>network byte
+order</strong> is used.</p>
+
+<p>Weights </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">weightId        long    8
+isFixed         bool    1
+initialValue    double  8
 </code></pre></div>
-<p>Among these reserved tables, we introduce the most useful two:</p>
-
-<h2>Useful relations</h2>
-
-<h3>Examine Factor Weights</h3>
-
-<p>View <code>dd_inference_result_variables_mapped_weights</code> shows all the learned weights mapped to its descriptions.</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">      View &quot;public.dd_inference_result_variables_mapped_weights&quot;
-    Column     |       Type       | Modifiers | Storage  | Description
----------------+------------------+-----------+----------+-------------
- id            | bigint           |           | plain    |
- initial_value | double precision |           | plain    |
- is_fixed      | boolean          |           | plain    |
- description   | text             |           | extended |
- weight        | double precision |           | plain    |
+<p>Variables</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">variableId      long    8
+isEvidence      bool    1
+initialValue    double  8
+dataType        short   2
+edgeCount*      long    8
+cardinality     long    8
 </code></pre></div>
-<h3>Examine Variables</h3>
+<p>Factors</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">factorId        long    8
+weightId        long    8
+factorFunction  short   2
+edgeCount       long    8
+</code></pre></div>
+<p>Edges</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">variableId      long    8
+factorId        long    8
+position        long    8
+isPositive      bool    1
+equalPredicate  long    8
+</code></pre></div>
+<p><em>Note</em>: from <a href="../changelog/0.03-alpha.html">version 0.03</a>, the edgeCount field
+in Variables is always -1.</p>
 
-<p>Views with name <code>[TABLE]_[VARIABLE]_inference</code> (e.g. has<em>spouse</em>is<em>true</em>inference) contain all variables mapped with their learned expectations. This is useful for examining results for error analysis.</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text"> View &quot;public.has_spouse_is_true_inference&quot;
-   Column    |       Type       | Modifiers
--------------+------------------+-----------
- person1_id  | bigint           |
- person2_id  | bigint           |
- sentence_id | bigint           |
- description | text             |
- is_true     | boolean          |
- relation_id | bigint           |
- id          | bigint           |
- category    | bigint           |
- expectation | double precision |
+<p>The systems also generates a metadata file which contains a single line in
+comma-separated-values format with the following fields:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">Number of weights
+Number of variables
+Number of factors
+Number of edges
+Path to weights file
+Path to variables file
+Path to factors file
+Path to edges file
 </code></pre></div>
             </div>
           </row>

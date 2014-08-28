@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,61 +46,70 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>DimmWitted High-Speed Sampler</h1>
+              <h1>The DimmWitted high-speed sampler</h1>
 
-<p>This tutorial explains how to use DimmWitted, a high-speed sampler for DeepDive. Note DimmWitted only supports 64-bit systems. DimmWitted binaries for both Mac OS X and Linux ship with DeepDive in the <code>util/</code> directory. These work out of the box on many modern systems, but setting up dependencies may be required on others (see below for more details).</p>
+<p>This document briefly presents DimmWitted, a high-speed <a href="../general/inference.html#gibbs">Gibbs
+sampler</a> for DeepDive.</p>
 
-<h3>Setting up dependencies</h3>
-
-<p>We ship pre-built dependencies for Linux and Mac systems in the <code>lib/</code> folder. Extract them:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">cd lib
-unzip dw_mac.zip
+<p>In <code>application.conf</code>, you can change the sampler executable as follows:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  sampler.sampler_cmd: <span class="s2">&quot;util/sampler-dw-mac gibbs&quot;</span>
+<span class="o">}</span>
 </code></pre></div>
-<p>Now, tell the executable to load the shared libraries by setting the appropriate environment variables (for example in your run.sh file). On Mac:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">export LD_LIBRARY_PATH=[DEEPDIVE_HOME]/lib/dw_mac/lib/protobuf/lib:[DEEPDIVE_HOME]/lib/dw_mac/lib
-export DYLD_LIBRARY_PATH=[DEEPDIVE_HOME]/lib/dw_mac
-</code></pre></div>
-<p>On Linux:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">export LD_LIBRARY_PATH=[DEEPDIVE_HOME]/lib/dw_linux/lib:[DEEPDIVE_HOME]/lib/dw_linux/lib64
-</code></pre></div>
-<h3>Using DimmWitted</h3>
+<p>Use <code>sampler-dw-mac</code> or <code>sampler-dw-linux</code> depending on which type
+of system your are on. </p>
 
-<p>In your <code>application.conf</code>, you can change the sampler executable as follows:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">deepdive {
-  sampler.sampler_cmd: &quot;util/sampler-dw-mac gibbs&quot;
-  sampler.sampler_args: &quot;-l 1000 -s 1 -i 1000 --alpha 0.01&quot;
-}
-</code></pre></div>
-<p>In the above, use <code>sampler-dw-mac</code> or <code>sampler-dw-linux</code> depending on which type of system your are on. Note that we have also changed the sampler parameters to use a larger number of iterations for learning and inference because each iteration takes much less time with the high-speed sampler.</p>
-
-<p>In the current system since <a href="changelog/0.03-alpha.html">version 0.03</a>, DeepDive will automatically choose mac / linux sampler based on your environment, so sampler_cmd is recommended to be omitted.</p>
+<p>Since <a href="../changelog/0.03-alpha.html">version 0.03</a>, DeepDive automatically
+chooses the correct executable based on the system environment, so we recommend to
+omit the <code>sampler_cmd</code> directive.</p>
 
 <h3>Sampler arguments</h3>
 
-<p>The sampler executable file can be invoked independently of DeepDive. The following arguments to the sampler executable are used to specify input files, output file, and learning and inference parameters:</p>
+<p>The sampler executable can be invoked independently of DeepDive. The following
+arguments to the sampler executable are used to specify input files, output
+file, and learning and inference parameters:</p>
 <div class="highlight"><pre><code class="language-text" data-lang="text">-w &lt;weightsFile&gt; | --weights &lt;weightsFile&gt;
     weights file (required)
+    It is a binary format file output by DeepDive.
+
 -v &lt;variablesFile&gt; | --variables &lt;variablesFile&gt;
     variables file (required)
+    It is a binary format file output by DeepDive.
+
 -f &lt;factorsFile&gt; | --factors &lt;factorsFile&gt;
     factors file (required)
+    It is a binary format file output by DeepDive.
+
 -e &lt;edgesFile&gt; | --edges &lt;edgesFile&gt;
     edges file (required)
+    It is a binary format file output by DeepDive.
+
 -m &lt;metaFile&gt; | --fg_meta &lt;metaFile&gt;
     factor graph meta data file file (required)
+    It is a text file containing factor graph meta information
+        as well as paths to weight/variable/factor/edge files.
+
 -o &lt;outputFile&gt; | --outputFile &lt;outputFile&gt;
     output file path (required)
+
 -i &lt;numSamplesInference&gt; | --n_inference_epoch &lt;numSamplesInference&gt;
-    number of samples during inference (required)
+    number of iterations (epochs) during inference (required)
+
 -l &lt;learningNumIterations&gt; | --n_learning_epoch &lt;learningNumIterations&gt;
-    number of iterations during weight learning (required)
+    number of iterations (epochs) during weight learning (required)
+
 -s &lt;learningNumSamples&gt; | --n_samples_per_learning_epoch &lt;learningNumSamples&gt;
     number of samples per iteration during weight learning (required)
+
 -a &lt;learningRate&gt; | --alpha &lt;learningRate&gt; | --stepsize &lt;learningRate&gt;
-    the learning rate for gradient descent (default: 0.01)
+    the learning rate for gradient descent (default: 0.1)
+
 -d &lt;diminishRate&gt; | --diminish &lt;diminishRate&gt;
-    the diminish rate for learning (default: 0.95)
+    the diminish rate for learning (default: 0.95).
+    Learning rate will shrink by this parameter after each iteration.
 </code></pre></div>
+<p>You can see a detailed list by running <code>util/sampler-dw-mac gibbs --help</code> or <code>util/sampler-dw-linux gibbs --help</code>.</p>
+
             </div>
           </row>
         </div>

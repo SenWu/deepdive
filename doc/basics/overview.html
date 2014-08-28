@@ -1,0 +1,151 @@
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="DeepDive" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://deepdive.stanford.edu/stylesheets/application.css" />
+    <link rel="canonical" href="http://deepdive.stanford.edu">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://deepdive.stanford.edu/javascripts/application.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDive</title>
+  </head>
+
+  <body>
+      <script type="text/javascript">
+window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
+window.analytics.load("h6uwk48gwg");
+window.analytics.page();
+</script>
+      <a href="https://github.com/hazyresearch/deepdive" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+      <div id="header">
+        <div class="container">
+          <row>
+            <div class="col-md-4 col-md-offset-1">
+              <a href="http://deepdive.stanford.edu/" class="deepdive-logo">
+              <img src="http://deepdive.stanford.edu/images/header_logo.png" style="width: 250px;"/>
+              </a> 
+            </div>
+            <div class="col-md-6 col-md-offset-1">
+              <ul class="list-unstyled list-inline" id="header-nav">
+                <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
+                <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
+              </ul>
+              
+            </div>
+          </row>
+        </div>
+      </div>
+
+      <section id="main">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <h1>DeepDive system overview</h1>
+
+<p>This document presents an overview of DeepDive as a system. It assumes that you
+are familiar with some general concepts like <a href="../general/inference.html">inference and factor
+graphs</a>, <a href="../general/relation_extraction.html">relation
+extraction</a>, and <a href="../general/distant_supervision.html">distant
+supervision</a>. It describes each step
+performed during the execution of a DeepDive application:</p>
+
+<ul>
+<li><p><a href="#extraction">Extraction</a></p></li>
+<li><p><a href="#grounding">Factor graph grounding</a></p></li>
+<li><p><a href="#weight">Weight learning</a></p></li>
+<li><p><a href="#inference">Inference</a></p></li>
+</ul>
+
+<h2><a name="extraction" href="#"></a> Extraction</h2>
+
+<p>The extraction step is a <strong>data transformation</strong> during which DeepDive processes
+the data to extract <a href="../general/relation_extraction.html#entity">entities</a>, perform
+entity linking, feature extraction, <a href="../general/distant_supervision.html">distant
+supervision</a>, and any other task
+necessary to create the variables on which it will then perform
+<a href="../general/inference.html">inference</a>, and, if needed, to generate the training
+data used for learning the factor weights. The tasks to perform during
+extraction are specified by defining <a href="extractors.html">extractors</a>, which are
+user-defined functions (UDFs). The results of extraction are stored in the
+application database and will be then used to build the factor graph according
+to <a href="inference_rules.html">rules specified by the user</a>.</p>
+
+<h2><a name="grounding" href="#"></a> Factor graph grounding</h2>
+
+<p>DeepDive uses a <a href="../general/inference.html">factor graph</a> to perform
+inference. The user writes SQL queries to instruct the system about
+which variables to create. These queries usually involve tables populated during
+the extraction step. The variable nodes of the factor graph are connected to
+factors according to <a href="inference_rules.html">inference rules</a> specified by the
+user, who also defines the factor functions which describe how the variables are
+related. The user can specify whether the factor weights should be constant or
+learned by the system (refer to the <a href="inference_rules.html">&#39;Writing inference rules&#39;
+document</a> ). </p>
+
+<p>Grounding is the process of writing the graph to disk so that it can be used to
+perform inference. DeepDive writes the graph to a set of five files: one for
+variables, one for factors, one for edges, one for weights, and one for metadata
+useful to the system. The format of these file is special so that they can be
+accepted as input by our <a href="sampler.html">sampler</a>.</p>
+
+<h2><a name="weight" href="#"></a> Weight learning</h2>
+
+<p>DeepDive can learn the weights of the factor graph from training data that can
+be either obtained through <a href="../general/distant_supervision.html">distant
+supervision</a> or specified by the user while
+populating the database during the extraction phase. The main general way for 
+learning the weights is maximum likelihood.</p>
+
+<p>The learned weights are then written to a specific database table so that the
+user can inspect them during the <a href="calibration.html">calibration</a> of the process.</p>
+
+<h2><a name="inference" href="#"></a> Inference</h2>
+
+<p>The final step consists in performing <a href="../general/inference.html#marginal">marginal
+inference</a> on the factor graph variables to
+learn the probabilities of different values they can take over all <a href="../general/inference.html#possibleworlds">possible
+worlds</a>. DeepDive uses our
+<a href="sampler.html">high-throughput DimmWitted sampler</a> to perform <a href="../general/inference.html#gibbs">Gibbs
+sampling</a>, i.e., to go through many possible
+worlds and to estimate the probabilities. The sampler takes the grounded
+graph (i.e., the five files written during the <a href="#grounding">grounding</a> step) as
+input, together with a number of arguments to specify the parameters for the
+learning procedure. The results of the inference step are written to the
+database. The user can write queries to <a href="running.html#results">analyze the
+results</a>. DeepDive also provides <a href="calibration.html">calibration
+data</a> to evaluate the accuracy of the inference.</p>
+
+<!-- TODO (All) Anything else we should add ? -->
+
+            </div>
+          </row>
+        </div>
+      </section>
+    
+      <footer id="footer">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <p class="pull-left"> 
+                Copyright, 2014 deepdive.stanford.edu
+                ⋅
+                <a href="mailto:contact.hazy@gmail.com">Questions? Email us</a>
+              </p>
+              <p class="pull-right"> 
+                Visit DeepDive on <a href="https://github.com/hazyresearch/deepdive" target="_blank">Github</a> 
+              </p>
+            </div>
+          </row>
+        </div>
+      </footer>
+
+    
+  
+  </body>
+</html>

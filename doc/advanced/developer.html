@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,7 +46,7 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Developer Guide &amp; System Architecture</h1>
+              <h1>Scala Developer Guide for DeepDive</h1>
 
 <p>DeepDive is written using the following frameworks and libraries:</p>
 
@@ -59,69 +59,40 @@ window.analytics.page();
 <li><a href="http://www.scala-sbt.org/">SBT</a> for dependency management</li>
 </ul>
 
-<h3>Style Guide</h3>
-
-<p>Please follow the <a href="http://docs.scala-lang.org/style/">Scala Style Guide</a> when contributing.</p>
+<p>You only need to install SBT. The rest of the dependences will be installed by
+DeepDive during the first compilation.</p>
 
 <h3>Compiling</h3>
 
-<p>You must install <a href="http://www.scala-sbt.org/">SBT</a> to compile DeepDive. On Mac OS X, you can install SBT using <a href="http://brew.sh/">Homebrew</a>. You can then compile DeepDive using the following command in the root directory. SBT should download all required dependencies (including Scala) for you.</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">sbt compile
+<p>You must install <a href="http://www.scala-sbt.org/">SBT</a> to compile DeepDive. On Mac OS
+X, you can install SBT using [Homebrew](http://brew.sh/. To compile DeepDive,
+run the following command from the <code>deepdive/</code> directory: </p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sbt compile
 </code></pre></div>
-<p>During development we recommend running <code>sbt ~compile</code> instead. The tilde will automatically watch the directory for changes, and recompile modified files.</p>
+<p>SBT should download all required dependencies (including Scala) for you.</p>
+
+<p>During development we recommend running <code>sbt ~compile</code> instead. The tilde will
+automatically watch the directory for changes, and recompile only modified files.</p>
 
 <h3>Running Tests</h3>
 
-<p>DeepDive comes with a number of unit- and integration test. For tests that require connection to a database (such as PostgreSQL), you must modify the <code>src/test/recources/application.conf</code> file with your connection parameters. You can run all tests with:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">sbt test
+<p>DeepDive comes with a number of unit- and integration tests. For tests that
+require connecting to a database (such as PostgreSQL), you must modify the
+<code>src/test/recources/application.conf</code> file with your connection parameters. You
+can run all tests with:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sbt <span class="nb">test</span>
 </code></pre></div>
 <p>To run a specific test, you can use:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">sbt &quot;test-only org.deepdive.test.unit.[TestClassName]&quot;
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sbt <span class="s2">&quot;test-only org.deepdive.test.unit.[TestClassName]&quot;</span>
 </code></pre></div>
-<p>You can use <code>sbt ~test</code> to keep running tests in the background while you are modifying files.</p>
+<p>You can use <code>sbt ~test</code> to keep running tests in the background while modifying
+files.</p>
 
-<h3>Reference: Factor Graph Output Schema</h3>
+<h3>Style Guide</h3>
 
-<p>DeepDive uses a custom binary format to encode the factor graph. It generates four files: One for weights, variables, factors, and edges. All of the files can be found in the out/ directory of the latest run. The format of these files is as follows (numbers are in bytes):</p>
+<p>Please follow the <a href="http://docs.scala-lang.org/style/">Scala Style Guide</a> when
+contributing.</p>
 
-<p>Weights: </p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">weightId        long    8
-isFixed         bool    1
-initialValue    double  8
-</code></pre></div>
-<p>Variables:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">variableId      long    8
-isEvidence      bool    1
-initialValue    double  8
-dataType        short   2
-edgeCount*      long    8
-cardinality     long    8
-</code></pre></div>
-<p>Factors</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">factorId        long    8
-weightId        long    8
-factorFunction  short   2
-edgeCount       long    8
-</code></pre></div>
-<p>Edges</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">variableId      long    8
-factorId        long    8
-position        long    8
-isPositive      bool    1
-equalPredicate  long    8
-</code></pre></div>
-<p>*Note: from <a href="changelog/0.03-alpha.html">version 0.03</a>, the edgeCount field in Variables is always -1.</p>
-
-<p>The systems also generates a metadata file of the following. The metadata file contains one comma-separated line with the following fields:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">Number of weights
-Number of variables
-Number of factors
-Number of edges
-Path to weights file
-Path to variables file
-Path to factors file
-Path to edges file
-</code></pre></div>
             </div>
           </row>
         </div>

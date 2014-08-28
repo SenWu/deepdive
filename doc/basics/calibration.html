@@ -1,0 +1,252 @@
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="DeepDive" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://deepdive.stanford.edu/stylesheets/application.css" />
+    <link rel="canonical" href="http://deepdive.stanford.edu">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://deepdive.stanford.edu/javascripts/application.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDive</title>
+  </head>
+
+  <body>
+      <script type="text/javascript">
+window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
+window.analytics.load("h6uwk48gwg");
+window.analytics.page();
+</script>
+      <a href="https://github.com/hazyresearch/deepdive" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+      <div id="header">
+        <div class="container">
+          <row>
+            <div class="col-md-4 col-md-offset-1">
+              <a href="http://deepdive.stanford.edu/" class="deepdive-logo">
+              <img src="http://deepdive.stanford.edu/images/header_logo.png" style="width: 250px;"/>
+              </a> 
+            </div>
+            <div class="col-md-6 col-md-offset-1">
+              <ul class="list-unstyled list-inline" id="header-nav">
+                <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
+                <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
+              </ul>
+              
+            </div>
+          </row>
+        </div>
+      </div>
+
+      <section id="main">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <h1><a name="calibration" href="#"></a> Calibration</h1>
+
+<p>One of the most important aspects of DeepDive is its iterative workflow. After
+having performed <a href="../general/inference.html">probabilistic inference</a> using
+DeepDive, it is crucial to evaluate the results and act on the feedback that the
+system provides to improve the accuracy. DeepDive produces <em>calibration plots</em>
+to help the user with this task.</p>
+
+<h3><a name="holdout" href="#"></a> Defining holdout</h3>
+
+<p>To get the most out of calibration, the user should specify a <em>holdout fraction</em> for
+the training data. DeepDive uses the holdout to evaluate its predictions. By
+default, no holdout is used.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">calibration: <span class="o">{</span>
+  holdout_fraction: 0.25
+<span class="o">}</span>
+</code></pre></div>
+<p>By default the system randomly selects which variables belong to the holdout
+set. Only variables with evidence can be selected.</p>
+
+<h4><a name="custom_holdout" href="#"></a> Custom Holdout</h4>
+
+<p>DeepDive allows to specify a SQL query that defines which variables should
+be in the holdout set. A custom holdout query must insert all variable IDs that
+are to be held out into the <code>dd_graph_variables_holdout</code> table through arbitrary
+SQL. A custom holdout query can be specified as follows:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">calibration: <span class="o">{</span>
+  holdout_query: <span class="s2">&quot;INSERT INTO dd_graph_variables_holdout(variable_id) SELECT id FROM mytable WHERE predicate&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>When a custom holdout query is defined in <code>holdout_query</code>, the
+<code>holdout_fraction</code> setting is ignored. </p>
+
+<h3>Inspecting probabilities and weights</h3>
+
+<p>To improve the prediction accuracy it is useful to inspect the probabilities for
+each variable, and the learned factor weights. DeepDive creates a view called
+<code>dd_inference_result_mapped_weights</code> which contains the factor names and the
+learned values sorted by absolute value. The
+<code>dd_inference_result_variables_mapped_weights</code> view has the following schema:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">      View &quot;public.dd_inference_result_variables_mapped_weights&quot;
+    Column     |       Type       | Modifiers | Storage  | Description
+---------------+------------------+-----------+----------+-------------
+ id            | bigint           |           | plain    |
+ initial_value | double precision |           | plain    |
+ is_fixed      | boolean          |           | plain    |
+ description   | text             |           | extended |
+ weight        | double precision |           | plain    |
+</code></pre></div>
+<p>Specification for these fields:</p>
+
+<ul>
+<li><strong>id</strong>: the unique identifier for the weight</li>
+<li><strong>initial_value</strong>: the initial value for the weight</li>
+<li><strong>is_fixed</strong>: whether the weight is fixed (cannot be changed during learning)</li>
+<li><strong>description</strong>: description of the weight, composed by [the name of inference rule]-[the specified value of &quot;weight&quot; in inference rule]</li>
+<li><strong>weight</strong>: the learned weight value</li>
+</ul>
+
+<h3>Calibration data and plots</h3>
+
+<p>The system generates a calibration data file for each variable defined in the
+<a href="schema.html">schema</a>. The output log contains the path of these files. By
+default, they are placed in <code>target/calibration/[variable_name].tsv</code>. Each file
+contains ten lines with five columns each:</p>
+
+<p>[bucket_from] [bucket<em>to] [num<em>predictions] [num</em>true] [num</em>false]</p>
+
+<p>DeepDive places the inference results into ten buckets. Each bucket is
+associated to a probability interval from 0.0 to 1.0. The meaning of the last
+three columns is the:</p>
+
+<ul>
+<li><p><code>num_predictions</code> is the number of variables in the probability bucket,
+including both holdout and query variables (unknown variables).
+It can be shown as num<em>predictions = num</em>holdout + num<em>unknown</em>var.</p></li>
+<li><p><code>num_true</code> is the number of holdout variables in the probability bucket with the 
+value of true. The number should be high for buckets with large
+probabilities and small for buckets with small probabilities since the actual value
+of these variables are true and with high probability they should be predicted as true. 
+Not that in this case only the holdout data is used.</p></li>
+<li><p><code>num_false</code> is the number of holdout variables in the probability bucket with the 
+value of false. The number should be small for buckets with large
+probabilities and large for buckets with small probabilities since the actual value
+of these variables are false and with low probability they should be predicted as true.
+Not that in this case only the holdout data is used.</p></li>
+</ul>
+
+<p>DeepDive also generates a calibration plot for each of the variables defined
+in schema. The location of the plot is given in the DeepDive output of each run:</p>
+
+<p>13:05:28 [profiler] INFO  calibration plot written to $DEEPDIVE<em>HOME/out/2014-06-23T130346/calibration/has</em>spouse.is_true.png [0 ms]</p>
+
+<p>DeepDive also prints in its output the commands to generate the calibration
+plots, so the user can create the plots manually.</p>
+
+<h4>Interpreting calibration plots</h4>
+
+<p>A typical calibration plot looks as follows:</p>
+
+<p><img src="http://deepdive.stanford.edu/images/calibration_example.png" alt=""></p>
+
+<p><strong>The accuracy plot (a)</strong> shows the ratio of correct positive predictions
+for each probability bucket. Ideally, the red line should follow the blue line,
+representing that the system finds high number of evidence positive predictions for higher probability buckets and for lower probability buckets the system finds less number of evidence positive predictions linearly. Which means for probability bucket of 0 there should be no positive prediction, and for 100% bucket all the predictions should be positive. The accuracy is defined as num<em>holdout</em>true / num<em>holdout</em>total.</p>
+
+<p><strong>Plots (b) and (c)</strong> shows the number of total prediction on the test and the
+training set, respectively. Ideally these plots should follow a U-curve. That
+is, the systems makes many predictions with probability 0 (event that are likely
+to be false), and many predictions with probability &gt; 0.9 (events that are
+likely to be true). Predictions in the range of 0.4 - 0.6 mean that the system
+is not sure, which may indicate that need more features to make predictions for
+such events.</p>
+
+<p>Note that plots (a) and (b) can only be generated if a <a href="#holdout">holdout fraction was
+specified in the configuration</a>.</p>
+
+<h4>Acting on calibration data</h4>
+
+<p>There could many factors that lead to suboptimal results. Common ones are:</p>
+
+<ul>
+<li><p><strong>Not enough features:</strong> this is particularly common when a lot of
+probability mass falls in the middle buckets (0.4 - 0.6). The system may be unable
+to make predictions about events because the available features are not
+specific-enough for the events. Take a look at variables that were assigned a probability
+in the 0.4 to 0.6 range, inspect them, and come up with specific features that
+would push these variables towards a positive or negative probability.</p></li>
+<li><p><strong>Not enough positive evidence:</strong> without sufficient positive evidence the
+system will be unable to learn weights that push variables towards a high
+probability (or low probability if the variables are negated).
+Having little probability mass on the right side of the graph is often an
+indicator for not having enough positive evidence, or not using features that
+uses the positive evidence effectively.</p></li>
+<li><p><strong>Not enough negative evidence:</strong> without sufficient negative
+evidence, or with negative evidence that is biased, the system will not be
+able to distinguish true events from false events. That is, it will generate
+many <em>false positives</em>. In the graph this is often indicated by having little
+probability mass on the left (no U-shape) in plots b) and c), or/and by having
+a low accuracy for high probabilities in plot a). Generating <a href="generating_negative_examples.html">negative
+evidence</a> can be somewhat of an art.</p></li>
+<li><p><strong>Weight learning does not converge:</strong> when DeepDive is unable to learn
+weights for the inference rules the predicated data will be invalid. Check the
+DeepDive log file for the gradient value at the end of the learning phrase. If
+the value is very large (1000 or more), then it is possible that weight
+learning was not successful. In this case, one may try to increase the number
+of learning iterations, decrease the learning rate, or use a faster decay. On
+the other hand, if results converge too fast to a local optimum, the user can try
+increasing the number of learning iterations, increase the learning rate, or
+using a slower decay. Check the <a href="sampler.html">DimmWitted sampler
+documentation</a> for more details.</p></li>
+<li><p><strong>Weight learning converges to a local optimum</strong>: the user can try increasing
+the learning rate, or using a slower decay.  Check the <a href="sampler.html">DimmWitted sampler
+documentation</a> for more details.</p></li>
+</ul>
+
+<h3>Recall Errors</h3>
+
+<p>Recall is the fraction of relevant events that are extracted. In information
+extraction applications there are generally two sources of recall error:</p>
+
+<ul>
+<li><p><strong>Events candidates are not recognized in the text.</strong> In this case, no
+variables are created are recall errors and these events do not show up in the
+calibration plots. For example, the system may fail to identify &quot;micro soft&quot; as a
+company name if it is lowercase and misspelled. Such errors are difficult to
+debug, unless there is  a complete database to test against, or the user makes
+a <a href="http://en.wikipedia.org/wiki/Closed_world_assumption">closed-world
+assumption</a> on the test
+set.</p></li>
+<li><p><strong>Events fall below a confidence cutoff</strong>. Assuming that one is only
+interested in events that have a high probability, then events in the
+mid-range of the calibration plots can be seen as recall errors. For example,
+if one is interested only in company names that are &gt; 90% confident are
+correct, then the company names in the buckets below 0.9 are recall errors.
+Recall can be improved using some of the aforementioned suggestions.</p></li>
+</ul>
+
+            </div>
+          </row>
+        </div>
+      </section>
+    
+      <footer id="footer">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <p class="pull-left"> 
+                Copyright, 2014 deepdive.stanford.edu
+                ⋅
+                <a href="mailto:contact.hazy@gmail.com">Questions? Email us</a>
+              </p>
+              <p class="pull-right"> 
+                Visit DeepDive on <a href="https://github.com/hazyresearch/deepdive" target="_blank">Github</a> 
+              </p>
+            </div>
+          </row>
+        </div>
+      </footer>
+
+    
+  
+  </body>
+</html>

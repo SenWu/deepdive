@@ -1,0 +1,636 @@
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="DeepDive" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://deepdive.stanford.edu/stylesheets/application.css" />
+    <link rel="canonical" href="http://deepdive.stanford.edu">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://deepdive.stanford.edu/javascripts/application.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDive</title>
+  </head>
+
+  <body>
+      <script type="text/javascript">
+window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
+window.analytics.load("h6uwk48gwg");
+window.analytics.page();
+</script>
+      <a href="https://github.com/hazyresearch/deepdive" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+      <div id="header">
+        <div class="container">
+          <row>
+            <div class="col-md-4 col-md-offset-1">
+              <a href="http://deepdive.stanford.edu/" class="deepdive-logo">
+              <img src="http://deepdive.stanford.edu/images/header_logo.png" style="width: 250px;"/>
+              </a> 
+            </div>
+            <div class="col-md-6 col-md-offset-1">
+              <ul class="list-unstyled list-inline" id="header-nav">
+                <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
+                <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
+              </ul>
+              
+            </div>
+          </row>
+        </div>
+      </div>
+
+      <section id="main">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Application configuration file reference</h1>
+
+<p>This document contains the description of each configuration directive that can
+be specified in an application configuration file.</p>
+
+<h2>Overview of configuration structure</h2>
+
+<p><strong>Global section</strong>: all application configuration directives described in the rest of the document
+must appear inside a global <code>deepdive</code> section:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+ <span class="c"># All configuration directives go here</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>A starter template of <code>application.conf</code> is below. You can found it in
+<code>examples/template/</code> in your <code>DEEPDIVE_HOME</code> installation directory:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+
+  db.default <span class="o">{</span>
+    driver   : <span class="s2">&quot;org.postgresql.Driver&quot;</span>
+    url      : <span class="s2">&quot;jdbc:postgresql://&quot;</span><span class="k">${</span><span class="nv">PGHOST</span><span class="k">}</span><span class="s2">&quot;:&quot;</span><span class="k">${</span><span class="nv">PGPORT</span><span class="k">}</span><span class="s2">&quot;/&quot;</span><span class="k">${</span><span class="nv">DBNAME</span><span class="k">}</span>
+    user     : <span class="k">${</span><span class="nv">PGUSER</span><span class="k">}</span>
+    password : <span class="k">${</span><span class="nv">PGPASSWORD</span><span class="k">}</span>
+    dbname   : <span class="k">${</span><span class="nv">DBNAME</span><span class="k">}</span>
+    host     : <span class="k">${</span><span class="nv">PGHOST</span><span class="k">}</span>
+    port     : <span class="k">${</span><span class="nv">PGPORT</span><span class="k">}</span>
+  <span class="o">}</span>
+
+  <span class="c"># Put your variables here</span>
+  schema.variables <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="c"># Put your extractors here</span>
+  extraction.extractors <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="c"># Put your inference rules here</span>
+  inference.factors <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="c"># Specify a holdout fraction</span>
+  calibration.holdout_fraction: 0.00
+
+<span class="o">}</span>
+</code></pre></div>
+<p>In this template, the global section <code>deepdive</code> contains following major sections: <code>db</code>, <code>schema</code>, <code>extraction</code>, <code>inference</code>, <code>calibration</code>. Other optional sections are <code>sampler</code> and <code>pipeline</code>.</p>
+
+<p>Links to these sections:</p>
+
+<ul>
+<li><a href="#database">db</a>: database connections</li>
+<li><a href="#schema">schema</a>: variable schema</li>
+<li><a href="#extraction">extraction</a>: extraction tasks</li>
+<li><a href="#inference-opt">inference</a>: inference rules</li>
+<li><a href="#calibration">calibration</a>: calibration parameters</li>
+<li><a href="#sampler">sampler</a>: sampler arguments</li>
+<li><a href="#pipelines">pipeline</a>: pipeline specifications</li>
+</ul>
+
+<h2>Notation format</h2>
+
+<p>DeepDive configuration file uses HOCON format. It is an extension of JSON. For a detailed specification, see <a href="https://github.com/typesafehub/config/blob/master/HOCON.md#readme">readme of HOCON</a>.</p>
+
+<p>Below are some highlights of the notation format.</p>
+
+<h3>Blocks</h3>
+
+<p>Blocks are specified by <code>{}</code> rather than indentation. Blocks can be nested.</p>
+
+<p>Note that the following nested block definition are equivalent:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">schema {
+  variables {
+    ...
+  }
+}
+</code></pre></div>
+<p>and</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">schema.variables {
+  ...
+}
+</code></pre></div>
+<p>This is often useful in making the code more compact.</p>
+
+<h3>Comments</h3>
+
+<p>Any text appearing after a <code>#</code> or <code>//</code> and before the next new line is considered a comment, unless the <code>#</code> or <code>//</code> is inside a quoted string.</p>
+
+<h3>Key-value separators</h3>
+
+<p>Both <code>:</code> and <code>=</code> are valid key-value separators.</p>
+
+<h2><a name="database" href="#"></a> Database connection</h2>
+
+<p>The configuration directives for the database connection must be specified
+inside a <code>db.default</code> section:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  db.default <span class="o">{</span>
+    <span class="c"># Database connection parameters</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>The configuration directives for the database connection are the following:</p>
+
+<ul>
+<li><p><code>driver</code>: specify the JDBC driver to use. Currently only PostgreSQL is
+supported, so it must be &quot;org.postgresql.Driver&quot;:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">driver   : <span class="s2">&quot;org.postgresql.Driver&quot;</span>
+</code></pre></div></li>
+<li><p><code>url</code>: the URL of the database instance in <a href="http://jdbc.postgresql.org/documentation/80/connect.html">JDBC
+format</a>:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">url      : <span class="s2">&quot;jdbc:postgresql://[host]:[port]/[database_name]&quot;</span> 
+</code></pre></div></li>
+<li><p>To support full deepdive functionality, the <code>host</code>, <code>port</code>, and
+<code>dbname</code> directives must also be specified:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">host     : <span class="o">[</span>host<span class="o">]</span>
+port     : <span class="o">[</span>port<span class="o">]</span>
+dbname   : <span class="o">[</span>database_name<span class="o">]</span>
+</code></pre></div></li>
+<li><p><code>user</code>: the database user:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">user     : <span class="s2">&quot;deepdive&quot;</span>
+</code></pre></div></li>
+<li><p><code>password</code>: the password for the database user</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">password : <span class="s2">&quot;dbpassword&quot;</span>
+</code></pre></div></li>
+</ul>
+
+<p>If you want to use <a
+href="../advanced/performance.html#parallelgrounding">parallel grounding</a>,
+you should also specify the following:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">gphost : <span class="o">[</span>host of gpfdist<span class="o">]</span>
+gpport : <span class="o">[</span>port of gpfdist<span class="o">]</span> 
+gppath : <span class="o">[</span>path to gpfdist directory<span class="o">]</span>
+</code></pre></div>
+<p>You must also set <code>inference.parallel_grounding</code> to <code>true</code>.</p>
+
+<h2><a name="extraction" href="#"></a> Extraction and extractors</h2>
+
+<p>Configuration directives for executing <a href="extractors.html">extractors</a> go in the
+<code>extraction</code> section, while extractor definitions go in the <code>extraction.extractors</code> section:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  extraction <span class="o">{</span>
+    <span class="c"># extraction directives </span>
+  <span class="o">}</span>
+  extraction.extractors <span class="o">{</span>
+    <span class="c"># extractor definitions</span>
+  <span class="o">}</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>There is currently only one available extraction configuration directive:</p>
+
+<ul>
+<li><p><code>parallelism</code>: specifies the maximum number of extractors to execute in
+parallel. The default value of <code>parallelism</code> is 1. E.g.:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># 3 extractors can run in parallel if all their dependencies are met</span>
+extraction.parallelism: 3
+
+<span class="c">#...</span>
+</code></pre></div></li>
+</ul>
+
+<h3><a name="extractor" href="#"></a> Extractors definition</h3>
+
+<p>Each extractor definition is a section named with the name of the extractor:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  <span class="c"># ...</span>
+  extraction.extractors <span class="o">{</span>
+
+    extractor1 <span class="o">{</span>
+      <span class="c"># definition of extractor1 </span>
+    <span class="o">}</span>
+
+    extractor2 <span class="o">{</span>
+      <span class="c"># definition of extractor2</span>
+    <span class="o">}</span>
+
+    <span class="c"># More extractors ...</span>
+  <span class="o">}</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Different styles of <a href="extractors.html">extractors</a> are defined using different
+sets of directives. There is nevertheless a subset of directives that are common
+to all styles:</p>
+
+<ul>
+<li><p><code>style</code>: specifies the style of the extractor. Can take the values
+<code>json_extractor</code>, <code>tsv_extractor</code>, <code>plpy_extractor</code>, <code>sql_extractor</code>, or
+<code>cmd_extractor</code>. See the <a href="extractors.html">&#39;Writing extractors&#39; document</a> for
+details about the different styles of extractors. This is a mandatory
+directive.</p></li>
+<li><p><code>before</code>: specifies a shell command to run <strong>before</strong> executing the extractor.
+This is an optional directive.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;tsv_extractor&quot;</span>
+  <span class="c"># ...</span>
+  before: <span class="s2">&quot;&quot;&quot;echo starting myExtractor&quot;&quot;&quot;</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div></li>
+<li><p><code>after</code>: specifies a shell command to run <strong>after</strong> the extractor has
+completed:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;sql_extractor&quot;</span>
+  <span class="c"># ...</span>
+  after: <span class="s2">&quot;&quot;&quot;python cleanup_after_myExtractor.py&quot;&quot;&quot;</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div></li>
+<li><p><code>dependencies</code>: takes an array of extractor names that this extractor depends
+on. The system resolves the dependency graph and execute the extractors in the
+required order (in parallel if possible and <code>parallelism</code> has a value grater
+than 1). E.g.:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">extractor1 <span class="o">{</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+
+extractor2 <span class="o">{</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+
+myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;cmd_extractor&quot;</span>
+  <span class="c"># ...</span>
+  dependencies: <span class="o">[</span> <span class="s2">&quot;extractor1&quot;</span>, <span class="s2">&quot;extractor2&quot;</span> <span class="o">]</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div></li>
+</ul>
+
+<p>If an extractor specified in dependencies does not exist or is not in the
+  active <a href="running.html#pipelines">pipeline</a>, that extractor will be ignored.  </p>
+
+<p>The following directives are only for the <code>json_extractor</code>, <code>tsv_extractor</code>, and
+<code>plpy_extractor</code> styles. They are <strong>mandatory</strong> for these styles.</p>
+
+<ul>
+<li><p><code>input</code>: specifies the input to the extractor. For all the three extractor
+style above it can be a SQL query to run on the database, e.g.,:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;tsv_extractor&quot;</span>
+  <span class="c"># ...</span>
+  input: <span class="s2">&quot;&quot;&quot;SELECT * FROM titles&quot;&quot;&quot;</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div>
+<p><strong>Only</strong> for extractors with style <code>json_extractor</code>, the <code>input</code> directive may
+specify a TSV or CSV file to use as input, e.g.,:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;json_extractor&quot;</span>
+  <span class="c"># ...</span>
+  input: CSV<span class="o">(</span>pathtofile.csv<span class="o">)</span> <span class="c"># or TSV(pathtofile.tsv)</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div></li>
+<li><p><code>output_relation</code>: specifies the name of the relation the extractor output
+should be written to. Must be an existing relation in the database. E.g.:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;plpy_extractor&quot;</span>
+  <span class="c"># ...</span>
+  output_relation: words
+  <span class="c"># ...</span>
+<span class="o">}</span> 
+</code></pre></div></li>
+<li><p><code>udf</code>: specifies the extractor User Defined Function (UDF). This is a shell
+command or a script that is executed. Refer to the <a href="extractors.html">&#39;Writing extractors&#39;
+guide</a> for details about the requirements for the UDF for
+different styles of extractors.</p></li>
+</ul>
+
+<p>In the following subsections we present the directives that are specific to each
+extractor style, if any.</p>
+
+<h4><a name="json" href="#"></a> json_extractor / tsv_extractor</h4>
+
+<ul>
+<li><p><code>parallelism</code>: specifies the number of instances of this extractor to be
+executed in parallel. Tuples generated by the <code>input</code> query are sent (in
+batches of size controlled by the <code>input_batch_size</code> directive) to each
+instance in a round-robin fashion. This is an optional directive. Example
+usage: </p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;json_extractor&quot;</span>
+  <span class="c"># ...</span>
+  parallelism: 5
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div></li>
+<li><p><code>input_batch_size</code>: specifies the size of the batch of tuples to feed to each
+instance of the extractor at each round-robin iteration. This is an optional directive. <strong>The default value is 10000.</strong>  Example usage:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;json_extractor&quot;</span>
+  <span class="c"># ...</span>
+  parallelism: 5
+  <span class="c"># ...</span>
+  input_batch_size: 5000
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div></li>
+<li><p><code>output_batch_size</code>: specifies how many tuples in the output of the extractor
+are inserted into the <code>output_relation</code> at once. If the tuples are large, a
+smaller value may avoid incurring in out of memory errors. This is an optional directive. <strong>The default value is 50000.</strong> Example usage:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  <span class="c"># ...</span>
+  style: <span class="s2">&quot;json_extractor&quot;</span>
+  <span class="c"># ...</span>
+  output_batch_size: 5000
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div></li>
+</ul>
+
+<h4>sql_extractor</h4>
+
+<ul>
+<li><p><code>sql</code>: specifies the SQL command to execute. This option is mandatory for this
+extractor style. Example usage:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  style: <span class="s2">&quot;sql_extractor&quot;</span>
+  sql: <span class="s2">&quot;&quot;&quot;INSERT INTO titles VALUES (1, &#39;Moby Dick&#39;)&quot;&quot;&quot;</span>
+<span class="o">}</span>
+</code></pre></div></li>
+</ul>
+
+<h4>cmd_extractor</h4>
+
+<ul>
+<li><p><code>cmd</code>: specifies the shell command to execte. This option is mandatory for
+this extractor style. Example usage:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myExtractor <span class="o">{</span>
+  style: <span class="s2">&quot;cmd_extractor&quot;</span>
+  cmd: <span class="s2">&quot;&quot;&quot;python words.py&quot;&quot;&quot;</span>
+<span class="o">}</span>
+</code></pre></div></li>
+</ul>
+
+<h2><a name="inference-opt" href="#"></a> Inference</h2>
+
+<p><em>Note:</em> this section presents configuration directive for the inference step.
+Refer to the <a href="#inferencerules">appropriate section</a> for the directives to define
+inference rules.</p>
+
+<p>Configuration directives to control the inference steps go in the global
+<code>deepdive</code> section. The available directives are:</p>
+
+<ul>
+<li><p><a name="batch_size" href="#"></a> <code>inference.batch_size</code>: batch size to
+insert variables, factors, and weights in the database during the factor graph
+creation: </p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">inference.batch_size <span class="o">=</span> 1000000 
+</code></pre></div></li>
+</ul>
+
+<p>The default value depends on the used datastore (50000 for PostgreSQL).</p>
+
+<ul>
+<li><p><a name="skip_learning" href="#"></a> <code>inference.skip_learning</code>: if <code>true</code>,
+DeepDive will skip the learning step for the factor weights and reuse the
+weights learned in the last execution. It will generate a table
+<code>dd_graph_last_weights</code> containing all the weights.  Weights will be matched
+by their &#39;&#39;text form&#39;&#39; (which is composed by <code>[name of inference rule]-[specified value of &quot;weight&quot; in inference rule]</code>, e.g. <code>myRule-male</code>), and no learning will be performed.  </p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">inference.skip_learning: <span class="nb">true</span>
+</code></pre></div>
+<p>By default this directive is <code>false</code>.</p></li>
+<li><p><a name="weight_table" href="#"></a> <code>inference.weight_table</code>: to be used in
+combination with <code>inference.skip_learning</code>, it allows to skip the weight
+learning step and use the weights specified in a custom table. The table
+tuples must contain the factor description and weights. Note that it is 
+important that this table is constracted with the same syntax as described above.</p>
+
+<p>This table can be the result from one execution of DeepDive (an example would
+be the view <code>dd_inference_result_variable_mapped_weights</code>, or
+<code>dd_graph_last_weights</code> used when <code>inference.skip_learning</code> is <code>true</code>) or
+manually assigned, or a combination of the two.</p>
+
+<p>If <code>inference_skip_learning</code> is <code>false</code> (default) this directive is ignored.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">inference.skip_learning: <span class="nb">true</span>
+inference.weight_table: <span class="o">[</span>weight table name<span class="o">]</span>
+</code></pre></div></li>
+<li><p><a href="parallelgrounding" href="#"></a> <code>inference.parallel_grounding</code>. If
+set to <code>true</code> and you are using <a href="../advanced/greenplum.html">GreenPlum
+on DeepDive</a>, use <a
+href="../advanced/performance.html#parallelgrounding">parallelism when
+grounding the graph</a>. Default is <code>false</code>.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">inference.parallel_grounding: <span class="nb">true</span>
+</code></pre></div></li>
+</ul>
+
+<h2><a name="inference_schema" href="#"></a> Inference schema</h2>
+
+<p>Inference <a href="schema.html">schema</a> directives define the variables used in the
+factor graph and their type. Inference schema directives go in the
+<code>schema.variables</code> section:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  <span class="c"># ...</span>
+  schema.variables <span class="o">{</span>
+    <span class="c"># Variable definitions</span>
+  <span class="o">}</span>
+  <span class="c"># ...</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>A variable is defined by its name and its type:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">people.smoke: Boolean
+people.has_cancer: Boolean
+</code></pre></div>
+<p>DeepDive currently supports only Boolean variables.</p>
+
+<h2><a name="inference_rules" href="#"></a> Inference rules</h2>
+
+<p><em>Note:</em> refer to <a href="inference_rules.html">&#39;Writing inference rules&#39; document</a> for
+an in-depth discussion about writing inference rules.</p>
+
+<p>The definitions of inference rules for the factor graphs go in the
+<code>inference.factors</code> section:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  inference.factors: <span class="o">{</span>
+    rule1 <span class="o">{</span>
+      <span class="c"># definition of rule1</span>
+    <span class="o">}</span>
+
+    rule2 <span class="o">{</span>
+      <span class="c"># definition of rule2 </span>
+    <span class="o">}</span>
+
+    <span class="c"># more rules...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>The <strong>mandatory</strong> definition directives for each rule are:</p>
+
+<ul>
+<li><p><code>input_query</code>: specifies the variables to create. It is a SQL query that
+usually combines relations created by the extractors. For each row in the
+query result, the factor graph will have variables for a subset of the columns in
+that row, one variable per column, all connected by a factor. The output of
+the <code>input_query</code> must include the reserved <code>id</code> column for each variable.</p></li>
+<li><p><code>function</code>: specifies the factor function and the variables connected by the
+factor. Refer to the <a href="inference_rule_functions.html">Inference rule function
+reference</a> for details about the available
+functions. Example usage:</p></li>
+<li><p><code>weight</code>: specifies whether the weight of the factor should be a specified
+constant or learned (and if so, whether it should be a function of some
+columns in the input query. Possible values for this directive are:</p>
+
+<ul>
+<li>a real number: the weight is the given number and not learned.</li>
+<li>&quot;?&quot;: DeepDive learns a weight for all factors defined by this rule. All the
+factors will share the same weight.</li>
+<li>&quot;?(column<em>name)&quot;: DeepDive learns multiple weights, one for each different
+value in the column `column</em>name<code>in the result of</code>input_query`. </li>
+</ul></li>
+</ul>
+
+<p>An example inference rule is the following:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">myRule <span class="o">{</span>
+  input_query : <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    SELECT people.id         AS &quot;</span>people.id<span class="s2">&quot;,</span>
+<span class="s2">           people.smokes     AS &quot;</span>people.smokes<span class="s2">&quot;,</span>
+<span class="s2">           people.has_cancer AS &quot;</span>people.has_cancer<span class="s2">&quot;,</span>
+<span class="s2">           people.gender     AS &quot;</span>people.gender<span class="s2">&quot;</span>
+<span class="s2">    FROM people</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+  <span class="k">function</span>    : <span class="s2">&quot;Imply(people.smokes, people.has_cancer)&quot;</span>
+  weight      : <span class="s2">&quot;?(people.gender)&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<h2><a name="calibration" href="#"></a> Calibration / Holdout</h2>
+
+<p>Directive for <a href="calibration.html">calibration</a> go to the <code>calibration</code> section.
+The available directives are:</p>
+
+<ul>
+<li><p><code>holdout_fraction</code>: specifies the fraction of training data to use for
+<a href="calibration.html#holdout">holdout</a>. E.g.:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">calibration: <span class="o">{</span>
+  holdout_fraction: 0.25
+<span class="o">}</span>
+</code></pre></div></li>
+<li><p><code>holdout_query</code>: specifies a custom query to be use to define the holdout set.
+The must insert all variable IDs that are to be held out into the
+<code>dd_graph_variables_holdout</code> table through arbitrary SQL. E.g.:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">calibration: <span class="o">{</span>
+  holdout_query: <span class="s2">&quot;INSERT INTO dd_graph_variables_holdout(variable_id) SELECT id FROM mytable WHERE predicate&quot;</span>
+<span class="o">}</span>
+</code></pre></div></li>
+</ul>
+
+<p>When a custom holdout query is defined in <code>holdout_query</code>, the
+  <code>holdout_fraction</code> setting is ignored. </p>
+
+<h2><a name="pipelines" href="#"></a> Pipelines</h2>
+
+<p><a href="running.html#pipelines">Pipelines</a> specification directives go in the global <code>deepdive</code>
+section. Available directives are <code>pipeline.pipelines</code> and <code>pipeline.run</code>.</p>
+
+<ul>
+<li><p><code>pipeline.pipelines</code> is a section containing a list of one or more
+pipelines. Each pipeline is defined as an array of tasks, where the names of
+the tasks are the names of the extractors or inference rules to be executed,
+as in the following example:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">pipeline.pipelines.myPipeline: <span class="o">[</span> <span class="s2">&quot;extractor1&quot;</span>, <span class="s2">&quot;extractor2&quot;</span>, <span class="s2">&quot;inferenceRule1&quot;</span> <span class="o">]</span>
+</code></pre></div></li>
+<li><p><code>pipeline.run</code> specifies which pipeline to run, e.g.:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">pipeline.run : <span class="s2">&quot;myPipeline&quot;</span>
+</code></pre></div></li>
+</ul>
+
+<p>Notice that:</p>
+
+<ul>
+<li><p>If there is no extractor or inference rule with a specified name, that
+name is ignored. </p></li>
+<li><p>If an extractor specified in the pipeline contains in its <code>dependencies</code>
+directive another extractor <strong>not</strong> specified in the pipeline, this
+particular dependency is ignored.</p></li>
+<li><p>When no inference rules are active in the pipeline, DeepDive only execute
+the extractors, skipping the weight learning and inference steps.</p></li>
+<li><p>Only a single pipeline can be specified. When the <code>pipeline.run</code> directive is
+not specified, DeepDive executes all extractors and inference rules. </p>
+
+<ul>
+<li><code>pipeline.relearn_from</code>: this directive takes as value a path to a previous
+execution of the application. It instructs DeepDives to <strong>skip all
+extractors</strong> and use the factor graph contained in the specified directory for
+the learning and inference steps. Usage example:</li>
+</ul>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">pipeline.relearn_from: <span class="s2">&quot;/PATH_TO_DEEPDIVE_HOME/out/2014-05-02T131658/&quot;</span>
+</code></pre></div></li>
+</ul>
+
+<h2><a name="sampler" href="#"></a> Sampler</h2>
+
+<p>Configuration directives for the sampler go in the global <code>deepdive</code> section.
+The available directive are:</p>
+
+<ul>
+<li><p>(Optional) <code>sampler.sampler_cmd</code>: the path to the sampler executable:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sampler.sampler_cmd: <span class="s2">&quot;util/sampler-dw-mac gibbs&quot;</span>
+</code></pre></div>
+<p>Since <a href="../changelog/0.03-alpha.html">version 0.03</a>, DeepDive automatically
+chooses the correct executable based on your operating system (between 
+<code>&quot;util/sampler-dw-linux gibbs&quot;</code> and <code>&quot;util/sampler-dw-mac gibbs&quot;</code>), so 
+we recommend to
+omit the <code>sampler_cmd</code> directive.</p></li>
+<li><p><code>sampler.sampler_args</code>: the arguments to the sampler executable:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">deepdive <span class="o">{</span>
+  sampler.sampler_args: <span class="s2">&quot;-l 1000 -s 1 -i 1000 --alpha 0.01&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>The default <code>sampler_args</code> are: <code>&quot;-l 300 -s 1 -i 500 --alpha 0.1&quot;</code>.</p>
+
+<p>For a list and the meaning of the arguments, please refer to the
+<a href="sampler.html">documentation of our DimmWitted sampler</a>.</p></li>
+</ul>
+
+            </div>
+          </row>
+        </div>
+      </section>
+    
+      <footer id="footer">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <p class="pull-left"> 
+                Copyright, 2014 deepdive.stanford.edu
+                ⋅
+                <a href="mailto:contact.hazy@gmail.com">Questions? Email us</a>
+              </p>
+              <p class="pull-right"> 
+                Visit DeepDive on <a href="https://github.com/hazyresearch/deepdive" target="_blank">Github</a> 
+              </p>
+            </div>
+          </row>
+        </div>
+      </footer>
+
+    
+  
+  </body>
+</html>

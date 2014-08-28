@@ -32,7 +32,7 @@ window.analytics.page();
             <div class="col-md-6 col-md-offset-1">
               <ul class="list-unstyled list-inline" id="header-nav">
                 <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
-                <li><a href="http://deepdive.stanford.edu/doc/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
                 <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
                 <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
               </ul>
@@ -46,40 +46,45 @@ window.analytics.page();
         <div class="container">
           <row>
             <div class="col-md-10 col-md-offset-1">
-              <h1>Inference Rule Function Reference</h1>
+              <h2>Generating negative evidence</h2>
 
-<h3>Variable Negation</h3>
+<!-- TODO (Ce/Matteo/Sen) read and improve this written by Zifei, or chat with Zifei to see how he can improve this.
+-->
 
-<p>One may negate variables using a <code>!</code> in each of the functions below. For example, <code>Or(A,!B)</code>. </p>
+<p>In common relation extraction applications, we often need to generate negative examples in order to train a good system. Without negative examples the system will tend to classify all the variables as positive. However for relation extraction, one cannot easily find enough golden-standard negative examples (ground truth). In this case, we often need to use distant supervision to generate negative examples.</p>
 
-<h3>Imply function</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text"># B and C and D =&gt; A
-Imply(B,C,D,A)
+<p>Negative evidence generation can be somewhat an art. The following are several common ways to generate negative evidence, while there might be some other ways undiscussed:</p>
+
+<ul>
+<li>incompatible relations</li>
+<li>domain-specific knowledge</li>
+<li>random sampling</li>
+</ul>
+
+<h3>Incompatible relations</h3>
+
+<p>Incompatible relations are other relations that are always, or usually, conflicting with the relation we want to extract. Say that we have entities <code>x</code> and <code>y</code>, the relation we want to extract is <code>A</code> and one incompatible relation to <code>A</code> is <code>B</code>, we have:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">B(x,y) =&gt; not A(x,y)
 </code></pre></div>
-<p>The <em>Imply</em> function describes a logical consequence. The last variable is the head. The variables in the body (<code>B,C,D</code>) are combined using a conjunction (logical AND). <a href="http://en.wikipedia.org/wiki/Truth_table#Logical_implication">Its truth table can be found here</a></p>
+<p>As an example, if we want to generate negative examples for &quot;spouse&quot; relation, we can use relations incompatible to spouse, such as parent, children or siblings: If <code>x</code> is the parent of <code>y</code>,  then <code>x</code> and <code>y</code> cannot be spouses.</p>
 
-<h3>Or function</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text"># A or B or C
-Or(A,B,C)
-</code></pre></div>
-<p>The <em>Or</em> function combines all variables using a logical disjunction. <a href="http://en.wikipedia.org/wiki/Truth_table#Logical_disjunction">Its truth table can be found here</a>.</p>
+<h3>Domain specific rules</h3>
 
-<h3>And function</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text"># A and B and C
-And(A,B,C)
-</code></pre></div>
-<p>The <em>And</em> function combines all variables using a logical conjunction. <a href="http://en.wikipedia.org/wiki/Truth_table#Logical_conjunction">Its truth table can be found here</a>.</p>
+<p>Sometimes we can make use of other domain-specific knowledge to generate negative examples. The design of such rules are largely dependent on the application. </p>
 
-<h3>Equal function</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text"># A &lt;=&gt; B
-Equal(A,B)
-</code></pre></div>
-<p>The <em>Equal</em> function is restricted to two variables and evaluates to true if and only if both variables have the same value. <a href="http://en.wikipedia.org/wiki/Truth_table#Logical_equality">Its truth table can be found here</a>.</p>
+<p>For example, for spouse relation, one possible domain-specific rule that uses temporal information is that &quot;people that do not live in the same time cannot be spouse&quot;. Specifically, if a person <code>x</code> has <code>birth_date</code> later than <code>y</code>&#39;s <code>death_date</code>, then <code>x</code> and <code>y</code> cannot be spouses.</p>
 
-<h3>IsTrue function</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text">IsTrue(A)  
-</code></pre></div>
-<p>The <em>IsTrue</em> function evaluates to true if and only if its variable evaluates to true. It is restricted to one variable. One may implement a <em>Not</em> function using <code>IsTrue(!A)</code>.</p>
+<h3>Random samples</h3>
+
+<p>Another way to generate negative evidence is to randomly sample a small proportion among all the variables (people mention pairs in our spouse example), and mark them as negative evidence. </p>
+
+<p>This is likely to generate some false negative examples, but if statistically variables are much more likely to be false, the random sampling will work.</p>
+
+<p>For example, most people mention pairs in sentences are not spouses, so we can randomly sample a small proportion of mention pairs and mark them as false examples of spouse relation.</p>
+
+<!-- TODO: improve this -->
+
+<p>To see an example of how we generate negative evidence in DeepDive, refer to the <a href="walkthrough/walkthrough.html#candidate_relations">example application walkthrough</a>.</p>
 
             </div>
           </row>

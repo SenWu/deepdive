@@ -1,0 +1,185 @@
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="DeepDive" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://deepdive.stanford.edu/stylesheets/application.css" />
+    <link rel="canonical" href="http://deepdive.stanford.edu">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://deepdive.stanford.edu/javascripts/application.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDive</title>
+  </head>
+
+  <body>
+      <script type="text/javascript">
+window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
+window.analytics.load("h6uwk48gwg");
+window.analytics.page();
+</script>
+      <a href="https://github.com/hazyresearch/deepdive" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+      <div id="header">
+        <div class="container">
+          <row>
+            <div class="col-md-4 col-md-offset-1">
+              <a href="http://deepdive.stanford.edu/" class="deepdive-logo">
+              <img src="http://deepdive.stanford.edu/images/header_logo.png" style="width: 250px;"/>
+              </a> 
+            </div>
+            <div class="col-md-6 col-md-offset-1">
+              <ul class="list-unstyled list-inline" id="header-nav">
+                <li><a href="http://deepdive.stanford.edu/index.html">Home</a></li>
+                <li><a href="http://deepdive.stanford.edu/doc/basics/installation.html">Download</a></li>
+                <li><a href="http://deepdive.stanford.edu/index.html#documentation">Documentation</a></li>
+                <li><a href="https://mailman.stanford.edu/mailman/listinfo/deepdive-list" target="_blank">Mailing List</a></li>
+              </ul>
+              
+            </div>
+          </row>
+        </div>
+      </div>
+
+      <section id="main">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <h1>DeepDive Installation Guide</h1>
+
+<p>This document explains how to install DeepDive.</p>
+
+<h3><a name="dependencies" href="#"></a> Dependencies</h3>
+
+<p>DeepDive uses PostgreSQL, Scala, and Python (version 2.X). The following
+software packages must be installed to run DeepDive:</p>
+
+<ul>
+<li><p><a href="http://www.oracle.com/technetwork/java/javase/downloads/jre7-downloads-1880261.html">Java</a>
+(version <strong>1.7.0_45 or higher</strong>)</p></li>
+<li><p><a href="https://www.python.org/">Python</a> <em>2.X</em> (not Python 3.X)</p></li>
+<li><p><a href="http://wiki.postgresql.org/wiki/Detailed_installation_guides">PostgreSQL</a></p></li>
+<li><p><a href="http://www.scala-sbt.org/release/tutorial/Setup.html">SBT</a></p></li>
+<li><p><a href="http://www.gnuplot.info/">Gnuplot</a></p></li>
+</ul>
+
+<p><a href="http://git-scm.com/book/en/Getting-Started-Installing-Git">Git</a> is needed to
+install DeepDive. </p>
+
+<h3>Download</h3>
+
+<p>Clone the Deepdive repository in the desired directory with:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">git clone https://github.com/HazyResearch/deepdive.git
+</code></pre></div>
+<p>This will create the directory <code>deepdive</code>. In the rest of the document, all
+paths are relative to this directory. We denote the <em>full</em> path to this
+directory as <code>DEEPDIVE_HOME</code>.</p>
+
+<h3>Quick install</h3>
+
+<!-- TODO (All): needs another one to go through the install process to make sure it works. -Zifei -->
+
+<p>We provide a Makefile to quickly install DeepDive. Under <code>DEEPDIVE_HOME</code>, run the following command to install DeepDive:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">make
+</code></pre></div>
+<p>This will first extract our sampler library, compile and pack DeepDive, and deploy the executable to <code>${HOME}/local/bin/deepdive</code>. You can also find the compiled executable in <code>DEEPDIVE_HOME/target/pack/bin/deepdive</code>.</p>
+
+<p>After <code>make</code> you should be already able to use DeepDive on your machine. You can either use the command <code>deepdive</code> (make sure to add <code>${HOME}/local/bin/</code> into your <code>$PATH</code>) to run the compiled binary, or compile and run each time by <code>sbt run</code> under <code>DEEPDIVE_HOME</code>.</p>
+
+<p>After that, make sure to <strong>set environmental variables</strong> needed for running sampler, depending on what OS you are using:</p>
+
+<p>On Mac:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=[</span>DEEPDIVE_HOME<span class="o">]</span>/lib/dw_mac/lib/protobuf/lib:<span class="o">[</span>DEEPDIVE_HOME<span class="o">]</span>/lib/dw_mac/lib
+<span class="nb">export </span><span class="nv">DYLD_LIBRARY_PATH</span><span class="o">=[</span>DEEPDIVE_HOME<span class="o">]</span>/lib/dw_mac
+</code></pre></div>
+<p>On Linux:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=[</span>DEEPDIVE_HOME<span class="o">]</span>/lib/dw_linux/lib:<span class="o">[</span>DEEPDIVE_HOME<span class="o">]</span>/lib/dw_linux/lib64
+</code></pre></div>
+<p>Finally, to ensure DeepDive works on your machine, then test DeepDive functionality by running all the script:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">make <span class="nb">test</span>
+</code></pre></div>
+<p>More explanation of what the Makefile does are in below sections.</p>
+
+<h4><a name="sampler" href="#"></a> Installing the DimmWitted Sampler</h4>
+
+<p>DimmWitted is our fast sampler that DeepDive use in the sampling step.
+DimmWitted binaries for both Mac OS X and Linux ship with DeepDive in the
+<code>util/</code> directory. These work out of the box on many modern systems, but setting
+up dependencies may be required on others.</p>
+
+<p><em>Note:</em> DimmWitted only supports 64-bit systems. </p>
+
+<p>We ship pre-built dependencies for Linux and Mac systems in the <code>lib/</code> folder, and the first step of the Makefile is to extract them depending on the OS.</p>
+
+<p>After this step, be sure to set environmental variables as described above, to make sure the extracted directories are included in the appropriate search paths.</p>
+
+<h4>Compiling DeepDive</h4>
+
+<p>The Makefile then compiles DeepDive by <code>sbt pack</code>. It involves downloading all the necessary frameworks and libraries used
+internally, and may take some time. If the operation completes with success, the
+last line of the <code>sbt pack</code> output should read something similar to: </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">[success] Total time: 110 s, completed Jan 28, 2014 6:31:09 PM
+</code></pre></div>
+<p>If the setup fails, check the console log for detailed error information, and make sure you have all the <a href="#dependencies">dependencies</a> installed.</p>
+
+<h4>Deploying DeepDive Binary</h4>
+
+<p>The Makefile will finally pack the compiled code into a binary file, and deploy it into <code>DEEPDIVE_HOME/target/pack/bin/deepdive</code>. Make sure you have write permissions to that folder. If deploying succeeded, you will see information like this:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">SUCCESS! DeepDive binary has been put into $HOME/local/bin.
+</code></pre></div>
+<h4>Running Tests</h4>
+
+<p>The command <code>make test</code> executed from the <code>DEEPDIVE_HOME</code> directory runs the
+sanity checks to make sure DeepDive runs properly on your machine. DeepDive will create a database <code>deepdive_test</code> using your login username and no password, and connect to the database during the tests. You should make sure Postgres is successfully installed to pass the tests. </p>
+
+<p>In case of success, the last lines of <code>make test</code> output is something similar to:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">[info] All tests passed.
+[success] Total time: 35 s, completed Jan 29, 2014 9:59:57 AM
+</code></pre></div>
+<p>Congratulations, DeepDive is now running on your system!</p>
+
+<p>Note that for the system to work properly, the <code>deepdive</code> folder must <em>not</em> be
+renamed.</p>
+
+<h3><a id="ddlib" href="#"></a> Additional step: setting up environment variables for DDLib</h3>
+
+<p>DDLib is our Python library that provides useful utilities such as &quot;Span&quot; to
+manipulate elements in sentences. It can be useful to write your UDFs during the
+<a href="overview.html#extraction">extraction step</a>. To use <code>ddlib</code>,
+<code>DEEPDIVE_HOME/ddlib</code> must be added to the <code>PATH</code> or <code>PYTHONPATH</code> environment
+variables:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">export </span><span class="nv">PYTHONPATH</span><span class="o">=</span>DEEPDIVE_HOME/ddlib:<span class="nv">$PYTHONPATH</span>
+</code></pre></div>
+<p>For more documentation about <code>ddlib</code>, please refer to its pydoc. Specifically, in a python terminal:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">ddlib</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">help</span><span class="p">(</span><span class="n">ddlib</span><span class="o">.</span><span class="n">dd</span><span class="p">)</span>
+</code></pre></div>
+<p>You will be able to see the pydoc to all its modules.</p>
+
+            </div>
+          </row>
+        </div>
+      </section>
+    
+      <footer id="footer">
+        <div class="container">
+          <row>
+            <div class="col-md-10 col-md-offset-1">
+              <p class="pull-left"> 
+                Copyright, 2014 deepdive.stanford.edu
+                ⋅
+                <a href="mailto:contact.hazy@gmail.com">Questions? Email us</a>
+              </p>
+              <p class="pull-right"> 
+                Visit DeepDive on <a href="https://github.com/hazyresearch/deepdive" target="_blank">Github</a> 
+              </p>
+            </div>
+          </row>
+        </div>
+      </footer>
+
+    
+  
+  </body>
+</html>
